@@ -22,14 +22,14 @@ class Account(models.Model):
 
     created_by = models.ForeignKey(
         'self',
-        related_name='created_accounts',
+        related_name='account_created',
         limit_choices_to={'role': 'ADMIN'},
         on_delete = models.CASCADE
     )
    
     modified_by =models.ForeignKey(
         'self',
-        related_name='modified_accounts',
+        related_name='account_modified',
         limit_choices_to={'role': 'ADMIN'} ,
         on_delete = models.CASCADE
     )

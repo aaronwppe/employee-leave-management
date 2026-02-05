@@ -25,7 +25,7 @@ ALLOWED_HOSTS = []
 
 
 INSTALLED_APPS = [
-    'api',
+    'api.apps.ApiConfig',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -70,10 +70,15 @@ WSGI_APPLICATION = 'server.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'organization',
-        'USER': 'postgres',
-        'PASSWORD': '1234',
-        'HOST': 'localhost'
+        'NAME': 'postgres',
+        'USER': 'postgres.sgayccmfrnxeboaijdbd',
+        'PASSWORD': 'Dhanesh@123',
+        'HOST': 'aws-1-ap-southeast-1.pooler.supabase.com',
+        'PORT': '5432',
+        'pool_mode': 'session',
+        'OPTIONS': {
+            'sslmode': 'require',
+        }
     }
 }
 
