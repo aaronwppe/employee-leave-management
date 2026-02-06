@@ -28,7 +28,7 @@ class Holiday(models.Model):
     deleted_on = models.DateTimeField(null=True)
     deleted_by = models.ForeignKey(
         Account,
-        on_delete=models.CASCADE,
+        on_delete=models.PROTECT,
         related_name="holidays_deleted",
     )
 
