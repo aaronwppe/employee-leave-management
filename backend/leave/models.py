@@ -25,6 +25,6 @@ class Leave(models.Model):
         if self.is_deleted == True:
             raise ValidationError("Leave is already deleted.")
 
-        self.is_deleted = False
+        self.is_deleted = True
         self.deleted_on = timezone.now()
         self.save(update_fields=["is_deleted", "deleted_on"])
