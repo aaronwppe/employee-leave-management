@@ -8,7 +8,7 @@ class _AccountAdmin(admin.ModelAdmin):
         "first_name",
         "last_name",
         "email",
-        "allocated_leaves",
+        "default_allocated_leaves",
         "remaining_leaves",
     )
 
