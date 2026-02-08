@@ -14,13 +14,14 @@ class AccountManager(auth_models.BaseUserManager):
         first_name: str,
         last_name: str,
         email: str,
-        password: str,
         role: AccountRole,
-        allocated_leaves: int,
+        default_allocated_leaves: int,
         remaining_leaves: int | None = None,
+        password: str | None = None,
         is_superuser: bool = False,
         is_active: bool = False,
         is_staff: bool = False,
+        **extra_fields,
     ) -> "Account":
 
         if not first_name:
@@ -32,28 +33,27 @@ class AccountManager(auth_models.BaseUserManager):
         if not email:
             raise ValueError("Account must have an email.")
 
-        if not password:
-            raise ValueError("Account must have a password.")
-
         if not role:
             raise ValueError("Account must have a role.")
 
-        if allocated_leaves is None:
-            raise ValueError("Account must have allocated leaves.")
+        if default_allocated_leaves is None:
+            raise ValueError("Account must have default allocated leaves.")
 
         if remaining_leaves is None:
-            remaining_leaves = allocated_leaves
+            remaining_leaves = default_allocated_leaves
 
         account = self.model(
             email=self.normalize_email(email),
             first_name=first_name,
             last_name=last_name,
             role=role,
-            allocated_leaves=allocated_leaves,
+            default_allocated_leaves=default_allocated_leaves,
+            current_year_allocated_leaves=remaining_leaves,
             remaining_leaves=remaining_leaves,
             is_superuser=is_superuser,
             is_active=is_active,
             is_staff=is_staff,
+            **extra_fields,
         )
         account.set_password(password)
         account.save()
@@ -73,7 +73,7 @@ class Account(auth_models.AbstractUser):
     REQUIRED_FIELDS = [
         "first_name",
         "last_name",
-        "allocated_leaves",
+        "default_allocated_leaves",
         "remaining_leaves",
         "role",
     ]
@@ -85,8 +85,19 @@ class Account(auth_models.AbstractUser):
     email = models.EmailField(max_length=254, unique=True)
     is_active = models.BooleanField(default=False)
 
-    allocated_leaves = models.PositiveIntegerField(validators=[MaxValueValidator(365)])
-    remaining_leaves = models.PositiveIntegerField(validators=[MaxValueValidator(365)])
+    # Number of leaves allocated every year
+    default_allocated_leaves = models.PositiveSmallIntegerField(
+        validators=[MaxValueValidator(365)]
+    )
+
+    # Number of leaves allocated this year
+    current_year_allocated_leaves = models.PositiveSmallIntegerField(
+        validators=[MaxValueValidator(365)]
+    )
+
+    remaining_leaves = models.PositiveSmallIntegerField(
+        validators=[MaxValueValidator(365)]
+    )
 
     role = models.CharField(
         max_length=10, choices=AccountRole.choices, default=AccountRole.EMPLOYEE
