@@ -108,3 +108,9 @@ USE_TZ = True
 STATIC_URL = "static/"
 
 AUTH_USER_MODEL = "account.Account"
+
+REST_FRAMEWORK = {
+    "EXCEPTION_HANDLER": "server.utils.exceptions.api_exception_handler",
+    "DEFAULT_PAGINATION_CLASS": "server.utils.pagination.ApiLimitOffsetPagination",
+    "PAGE_SIZE": 30,
+}
