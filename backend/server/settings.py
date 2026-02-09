@@ -28,6 +28,8 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "rest_framework",
+    "rest_framework_simplejwt",
+    "rest_framework_simplejwt.token_blacklist",
     "account",
     "leave",
     "org_calendar",
@@ -113,4 +115,13 @@ REST_FRAMEWORK = {
     "EXCEPTION_HANDLER": "server.utils.exceptions.api_exception_handler",
     "DEFAULT_PAGINATION_CLASS": "server.utils.pagination.ApiLimitOffsetPagination",
     "PAGE_SIZE": 30,
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+    ),
+}
+
+SIMPLE_JWT = {
+    "TOKEN_OBTAIN_SERIALIZER": "auth.serializers.AuthTokenObtainPairSerializer",
+    "ROTATE_REFRESH_TOKENS": True,
+    "BLACKLIST_AFTER_ROTATION": True,
 }
