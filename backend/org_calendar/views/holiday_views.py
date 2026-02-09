@@ -44,6 +44,15 @@ class HolidayViewSet(
 
         return queryset.filter(date_of_holiday__year=year)
 
+    def list(self, request, *args, **kwargs):
+        response = super().list(request, *args, **kwargs)
+        return Response(
+            data={
+                "holidays": response.data,
+            },
+            status=response.status_code,
+        )
+
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
