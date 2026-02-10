@@ -30,12 +30,15 @@ class Holiday(models.Model):
         Account,
         on_delete=models.PROTECT,
         related_name="holidays_deleted",
+        null=True,
     )
 
-    def delete(self, *args, **kwargs):
+    def soft_delete(self, account: Account):
         if self.is_deleted == True:
             raise ValidationError("Holiday is already deleted.")
 
         self.is_deleted = True
         self.deleted_on = timezone.now()
-        self.save(update_fields=["is_deleted", "deleted_on"])
+        self.deleted_by = account
+
+        self.save(update_fields=["is_deleted", "deleted_on", "deleted_by"])
