@@ -10,6 +10,7 @@ urlpatterns = [
                 path("", include("auth.urls")),
                 path("", include("account.urls")),
                 path("", include("org_calendar.urls")),
+                path("", include("leave.urls")),
             ]
         ),
     ),
