@@ -1,12 +1,11 @@
-import EmployeeOnboard from "../forms/EmployeeForm";
+import EmployeeTable from "../../components/tables/EmployeeTable";
 
-function AdminHome() {
-
-  const handleEmployeeCreated = (employee) => {
-    console.log("New employee created:", employee);
-  };
-
-  return <EmployeeOnboard onEmployeeCreated={handleEmployeeCreated} />;
+export default function AdminHome() {
+  return (
+    <div>
+      <EmployeeTable />
+    </div>
+  );
 }
 
-export default AdminHome;
+ 

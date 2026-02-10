@@ -1,9 +1,10 @@
-import AdminHome from "./components/pages/admin/AdminHome";
+// layouts/HRLayout.jsx
+import AdminHome from "../pages/admin/AdminHome";
 
 function AdminLayout() {
-  return <AdminHome/>;
-
+  return (
+    <AdminHome/>
+  );
 }
 
 export default AdminLayout;
-
