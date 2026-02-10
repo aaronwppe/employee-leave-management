@@ -35,6 +35,7 @@ INSTALLED_APPS = [
     "account",
     "leave",
     "org_calendar",
+    "corsheaders"
 ]
 
 MIDDLEWARE = [
@@ -121,4 +122,19 @@ REST_FRAMEWORK = {
     "EXCEPTION_HANDLER": "server.utils.exceptions.api_exception_handler",
     "DEFAULT_PAGINATION_CLASS": "server.utils.pagination.ApiLimitOffsetPagination",
     "PAGE_SIZE": 30,
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+    ),
 }
+
+SIMPLE_JWT = {
+    "TOKEN_OBTAIN_SERIALIZER": "auth.serializers.AuthTokenObtainPairSerializer",
+    "ROTATE_REFRESH_TOKENS": True,
+    "BLACKLIST_AFTER_ROTATION": True,
+}
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173"
+]
+
+CORS_ALLOW_HEADERS=list(default_headers)
