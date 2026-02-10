@@ -8,9 +8,13 @@ import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import CancelIcon from "@mui/icons-material/Cancel";
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import {Edit as EditIcon, Delete as DeleteIcon} from '@mui/icons-material';
+import CloseIcon from '@mui/icons-material/Close';
 import {MaterialReactTable} from 'material-react-table';
 import {GetData,ToggleStatus,updateAccount } from '../../services/Endpoints';
+import EmployeeOnboard from "../../components/forms/EmployeeForm";
+
 const EmployeeTable = () =>{
+    const [showOnboard, setShowOnboard] = useState(false);
     const [loading, setLoading] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const [account, setAccount] = useState([]);
@@ -18,14 +22,15 @@ const EmployeeTable = () =>{
     const theme = useTheme();
     const fullScreen = useMediaQuery(theme.breakpoints.down('md'));
     const [selectedRow, setSelectedRow] = useState(null);
-    // fetch data
-    useEffect(() => {
-        const fetchData = async () => {
+     // fetch data
+    const fetchAccounts = async () => {
         const data = await GetData();
         setAccount(data);
-        };
-        fetchData();
+    };
+    useEffect(() => {
+        fetchAccounts();
     }, []);
+
     const handleClickOpen = () => {
         setOpen(true);
     };
@@ -68,6 +73,14 @@ const EmployeeTable = () =>{
         }
     };
 
+    // create account popup handler
+    const openOnaboard = ()=>{
+        setShowOnboard(true)
+    }
+    const closeOnaboard = ()=>{
+        setShowOnboard(false)
+    }
+    
 
     // table columns
     const columns = useMemo(
@@ -163,21 +176,19 @@ const EmployeeTable = () =>{
                 muiEditRowDialogProps={{
                     disableEscapeKeyDown: isSaving,
                 }}
-                // craete account button
+                // create account button
                 renderTopToolbarCustomActions={() => (
                     <Box sx={{ display: 'flex', gap: '1rem', p: '4px' }}>
                         <Button
                         color="primary"
-                        onClick={() => {
-                            alert('Create New Account');
-                        }}
+                        onClick={openOnaboard}
                         variant="contained"
                         >
-                        Create Account
+                        + Create Account
                         </Button>
                     </Box>
                 )}
-
+                
                 renderRowActions={({ row, table }) => (
                     <Box sx={{ display: 'flex', flexWrap: 'nowrap', gap: '8px' }}>
                     {/* Change status */}
@@ -241,6 +252,14 @@ const EmployeeTable = () =>{
 
                 </DialogActions>
             </Dialog>
+            
+            {/* Employee onboarding popup */}
+            {showOnboard && (
+            <EmployeeOnboard
+                onClose={closeOnaboard}
+                onEmployeeCreated={fetchAccounts}
+            />
+            )}        
         </div>
     )
 }
