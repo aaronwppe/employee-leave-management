@@ -10,7 +10,7 @@ import VisibilityIcon from '@mui/icons-material/Visibility';
 import {Edit as EditIcon, Delete as DeleteIcon} from '@mui/icons-material';
 import CloseIcon from '@mui/icons-material/Close';
 import {MaterialReactTable} from 'material-react-table';
-import {GetData,ToggleStatus,updateAccount } from '../../services/Endpoints';
+import {getAccounts,toggleStatus,updateAccount } from '../../services/api/account.api';
 import EmployeeOnboard from "../../components/forms/EmployeeForm";
 
 const EmployeeTable = () =>{
@@ -24,7 +24,7 @@ const EmployeeTable = () =>{
     const [selectedRow, setSelectedRow] = useState(null);
      // fetch data
     const fetchAccounts = async () => {
-        const data = await GetData();
+        const data = await getAccounts();
         setAccount(data);
     };
     useEffect(() => {
@@ -43,8 +43,8 @@ const EmployeeTable = () =>{
         if (!selectedRow) return;
         setLoading(true);
         try {
-            await ToggleStatus(selectedRow.id, selectedRow.status);
-            const data = await GetData();
+            await toggleStatus(selectedRow.id, selectedRow.status);
+            const data = await getAccounts();
             setAccount(data);
             handleClose();
         } catch (error) {
@@ -61,7 +61,7 @@ const EmployeeTable = () =>{
             await updateAccount(id, values);
 
             // refresh table data
-            const data = await GetData();
+            const data = await getAccounts();
             setAccount(data);
 
             // close modal
