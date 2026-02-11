@@ -22,8 +22,12 @@ class AccountViewSet(ApiResponseMixin, viewsets.ModelViewSet):
         if self.action in ["update", "partial_update"]:
             return serializers.AccountUpdateSerializer
 
-        # "retrieve":
-        return serializers.AccountRetrieveSerializer
+        if self.action == "retrieve":
+            return serializers.AccountRetrieveSerializer
+
+        raise NotImplementedError(
+            f"Serializer for action '{self.action}' has not been implemented."
+        )
 
     def paginate_queryset(self, queryset):
         results = super().paginate_queryset(queryset)
