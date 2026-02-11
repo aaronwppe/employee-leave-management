@@ -1,25 +1,20 @@
 from rest_framework import serializers
+from org_calendar.models import WeekOff
 
-_DAYS_OF_THE_WEEK = [
-    "sunday",
-    "monday",
-    "tuesday",
-    "wednesday",
-    "thursday",
-    "friday",
-    "saturday",
-]
+
+class WeekOffSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = WeekOff
+        fields = ["id", "day", "weeks"]
 
 
 class WeekOffListSerializer(serializers.Serializer):
     weekoffs = serializers.SerializerMethodField()
 
     def get_weekoffs(self, obj):
-        return {
-            str(weekoff.week_of_month): [
-                day.upper()
-                for day in _DAYS_OF_THE_WEEK
-                if getattr(weekoff, day) == True
-            ]
-            for weekoff in obj
-        }
+        result = {}
+
+        for weekoff in obj:
+            result[weekoff.day] = weekoff.weeks
+
+        return result

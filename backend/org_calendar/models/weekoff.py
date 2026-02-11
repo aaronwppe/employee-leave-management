@@ -1,20 +1,22 @@
 from django.db import models
-from django.core.validators import MaxValueValidator, MinValueValidator
 from account.models import Account, AccountRole
 
 
 class WeekOff(models.Model):
-    week_of_month = models.PositiveIntegerField(
-        validators=[MinValueValidator(1), MaxValueValidator(5)], primary_key=True
-    )
+    DAY_CHOICES = [
+        ("SUNDAY", "Sunday"),
+        ("MONDAY", "Monday"),
+        ("TUESDAY", "Tuesday"),
+        ("WEDNESDAY", "Wednesday"),
+        ("THURSDAY", "Thursday"),
+        ("FRIDAY", "Friday"),
+        ("SATURDAY", "Saturday"),
+    ]
 
-    sunday = models.BooleanField(default=False)
-    monday = models.BooleanField(default=False)
-    tuesday = models.BooleanField(default=False)
-    wednesday = models.BooleanField(default=False)
-    thursday = models.BooleanField(default=False)
-    friday = models.BooleanField(default=False)
-    saturday = models.BooleanField(default=False)
+    day = models.CharField(max_length=10, choices=DAY_CHOICES, unique=True)
+
+    # "ALL" or list of weeks [1–6]
+    weeks = models.JSONField(default=list)
 
     created_on = models.DateTimeField(auto_now=True)
     created_by = models.ForeignKey(
@@ -23,3 +25,6 @@ class WeekOff(models.Model):
         related_name="weekoffs_created",
         limit_choices_to={"role": AccountRole.ADMIN},
     )
+
+    def __str__(self):
+        return f"{self.day} WeekOff"
