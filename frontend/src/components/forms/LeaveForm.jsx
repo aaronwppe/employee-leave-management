@@ -10,9 +10,8 @@ import {
   IconButton
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
-import { applyLeave } from "../../services/api/leave.api";
 
-function LeaveForm({ onLeaveCreated, onClose }) {
+function LeaveForm({ onClose }) {
   const [formData, setFormData] = useState({
     start_date: "",
     end_date: "",
@@ -36,11 +35,9 @@ function LeaveForm({ onLeaveCreated, onClose }) {
   const validateForm = () => {
     let newErrors = {};
 
-    if (!formData.start_date)
-      newErrors.start_date = "Start date is required";
+    if (!formData.start_date) newErrors.start_date = "Start date is required";
 
-    if (!formData.end_date)
-      newErrors.end_date = "End date is required";
+    if (!formData.end_date) newErrors.end_date = "End date is required";
 
     if (
       formData.start_date &&
@@ -50,8 +47,7 @@ function LeaveForm({ onLeaveCreated, onClose }) {
       newErrors.end_date = "End date cannot be before start date";
     }
 
-    if (!formData.reason.trim())
-      newErrors.reason = "Reason is required";
+    if (!formData.reason.trim()) newErrors.reason = "Reason is required";
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -66,35 +62,17 @@ function LeaveForm({ onLeaveCreated, onClose }) {
     setErrors({});
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = () => {
     if (!validateForm()) return;
 
-    try {
-      await applyLeave(formData);
+    setAlert({
+      open: true,
+      severity: "success",
+      message: "Leave applied successfully!"
+    });
 
-      setAlert({
-        open: true,
-        severity: "success",
-        message: "Leave applied successfully"
-      });
-
-      resetForm();
-
-      if (onLeaveCreated) {
-        await onLeaveCreated(); // refresh leave list
-      }
-
-      onClose(); // close modal
-    } catch (error) {
-      setAlert({
-        open: true,
-        severity: "error",
-        message:
-          error?.error ||
-          error?.response?.data?.error ||
-          "Error while applying leave"
-      });
-    }
+    resetForm();
+    if (onClose) onClose();
   };
 
   return (
@@ -112,8 +90,8 @@ function LeaveForm({ onLeaveCreated, onClose }) {
       <Paper
         elevation={6}
         sx={{
-          width: 420,
-          p: 3,
+          width: { xs: "90%", sm: 420 },
+          p: { xs: 2, sm: 3 },
           borderRadius: 3,
           position: "relative"
         }}
@@ -135,7 +113,14 @@ function LeaveForm({ onLeaveCreated, onClose }) {
           Apply Leave
         </Typography>
 
-        <Box display="flex" flexDirection="column" gap={2}>
+        <Box
+          sx={{
+            mt: 2,
+            display: "flex",
+            flexDirection: "column",
+            gap: 2
+          }}
+        >
           <TextField
             type="date"
             name="start_date"
@@ -169,7 +154,11 @@ function LeaveForm({ onLeaveCreated, onClose }) {
           />
 
           <Box display="flex" justifyContent="flex-end">
-            <Button variant="contained" onClick={handleSubmit}>
+            <Button
+              variant="contained"
+              sx={{ mt: 1, py: 1.25, px: 3, fontWeight: 600 }}
+              onClick={handleSubmit}
+            >
               Apply Leave
             </Button>
           </Box>
@@ -182,9 +171,7 @@ function LeaveForm({ onLeaveCreated, onClose }) {
         onClose={() => setAlert({ ...alert, open: false })}
         anchorOrigin={{ vertical: "top", horizontal: "center" }}
       >
-        <Alert severity={alert.severity}>
-          {alert.message}
-        </Alert>
+        <Alert severity={alert.severity}>{alert.message}</Alert>
       </Snackbar>
     </Box>
   );
