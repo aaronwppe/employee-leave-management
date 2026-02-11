@@ -4,6 +4,8 @@ from account import serializers
 from server.utils.responses import ApiResponseMixin
 from rest_framework.response import Response
 from rest_framework.status import HTTP_200_OK, HTTP_201_CREATED
+from django.db import transaction
+from account import services
 
 
 class AccountViewSet(ApiResponseMixin, viewsets.ModelViewSet):
@@ -32,11 +34,14 @@ class AccountViewSet(ApiResponseMixin, viewsets.ModelViewSet):
 
         return results
 
+    @transaction.atomic
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
         instance = serializer.save()
+        if instance.is_active:
+            services.send_activation_email(account=instance)
 
         response_serializer = serializers.AccountCreateResponseSerializer(instance)
         return Response(
@@ -44,9 +49,12 @@ class AccountViewSet(ApiResponseMixin, viewsets.ModelViewSet):
             status=HTTP_201_CREATED,
         )
 
+    @transaction.atomic
     def update(self, request, *args, **kwargs):
         is_partial_update = self.action == "partial_update"
+
         instance = self.get_object()
+        prev_status = instance.is_active
 
         serializer = self.get_serializer(
             instance,
@@ -54,12 +62,19 @@ class AccountViewSet(ApiResponseMixin, viewsets.ModelViewSet):
             partial=is_partial_update,
         )
         serializer.is_valid(raise_exception=True)
-        serializer.save()
+        updated_instance = serializer.save()
+
+        if (
+            not prev_status
+            and updated_instance.is_active == True
+            and not updated_instance.has_usable_password()
+        ):
+            services.send_activation_email(account=updated_instance)
+        elif not updated_instance.is_active and updated_instance.has_usable_password():
+            updated_instance.set_password(None)
+            updated_instance.save()
 
         return Response(
             data={},
             status=HTTP_200_OK,
         )
-
-    def partial_update(self, request, *args, **kwargs):
-        return self.update(request, *args, **kwargs)

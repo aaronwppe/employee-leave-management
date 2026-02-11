@@ -3,7 +3,9 @@ from rest_framework_simplejwt.views import (
     TokenRefreshView,
     TokenBlacklistView,
 )
+from rest_framework.generics import CreateAPIView
 from server.utils.responses import ApiResponseMixin
+from auth import serializers
 
 
 class AuthTokenObtainPairView(ApiResponseMixin, TokenObtainPairView):
@@ -16,3 +18,7 @@ class AuthTokenRefreshView(ApiResponseMixin, TokenRefreshView):
 
 class AuthTokenBlacklistView(ApiResponseMixin, TokenBlacklistView):
     pass
+
+
+class AuthResetPasswordView(ApiResponseMixin, CreateAPIView):
+    serializer_class = serializers.AuthPasswordResetSerializer

@@ -1,0 +1,30 @@
+<style>
+    a {
+        text-decoration: none;
+        text-align: center;
+        background-color: #3f51b5;
+        color: white;
+        padding: 13px;
+        border-radius: 10px;
+    }
+
+    div {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 200px;
+        flex-direction: column;
+    }
+</style>
+
+<div>
+    <h2>Hello {{name}},</h2>
+    <p>
+        Your ELMS Account has been activated.
+        <br />
+        Please proceed to Setup your Account below.
+        <br />
+    </p>
+
+    <a href="{{reset_password_link}}" target="_blank">Setup</a>
+</div>
