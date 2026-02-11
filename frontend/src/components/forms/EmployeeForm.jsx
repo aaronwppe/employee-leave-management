@@ -10,7 +10,7 @@ import {
   IconButton
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
-import createEmployee from "../../services/api/account.api";
+import {createEmployee} from "../../services/api/account.api";
 
 function EmployeeOnboard({ onEmployeeCreated, onClose }) {
   const [formData, setFormData] = useState({
