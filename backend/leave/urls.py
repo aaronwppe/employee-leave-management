@@ -1,7 +1,6 @@
 from rest_framework.routers import DefaultRouter
-from leave.views import LeaveViewSet
+from leave import views
 
 router = DefaultRouter()
-router.register("leave", LeaveViewSet, basename="leave")
-
+router.register("leave", views.LeaveViewSet, basename="leave")
 urlpatterns = router.urls

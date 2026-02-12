@@ -16,15 +16,33 @@ class Leave(models.Model):
     number_of_leaves = models.PositiveIntegerField(validators=[MinValueValidator(1)])
 
     created_on = models.DateTimeField(auto_now_add=True)
+    created_by = models.ForeignKey(
+        to=Account,
+        related_name="leaves_created",
+        on_delete=models.PROTECT,
+    )
+
     modified_on = models.DateTimeField(auto_now=True)
+    modified_by = models.ForeignKey(
+        to=Account,
+        related_name="leaves_modified",
+        on_delete=models.PROTECT,
+    )
 
     is_deleted = models.BooleanField(default=False)
     deleted_on = models.DateTimeField(null=True)
+    deleted_by = models.ForeignKey(
+        to=Account,
+        related_name="leaves_deleted",
+        on_delete=models.PROTECT,
+        null=True,
+    )
 
-    def delete(self, *args, **kwargs):
+    def soft_delete(self, account: Account):
         if self.is_deleted == True:
             raise ValidationError("Leave is already deleted.")
 
         self.is_deleted = True
         self.deleted_on = timezone.now()
-        self.save(update_fields=["is_deleted", "deleted_on"])
+        self.deleted_by = account
+        self.save(update_fields=["is_deleted", "deleted_on", "deleted_by"])
