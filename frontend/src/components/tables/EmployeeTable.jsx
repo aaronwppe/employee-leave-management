@@ -176,6 +176,7 @@ const EmployeeTable = () =>{
                 muiEditRowDialogProps={{
                     disableEscapeKeyDown: isSaving,
                 }}
+                positionActionsColumn="last" 
                 // create account button
                 renderTopToolbarCustomActions={() => (
                     <Box sx={{ display: 'flex', gap: '1rem', p: '4px' }}>
@@ -190,7 +191,9 @@ const EmployeeTable = () =>{
                 )}
                 
                 renderRowActions={({ row, table }) => (
+                    
                     <Box sx={{ display: 'flex', flexWrap: 'nowrap', gap: '8px' }}>
+                    
                     {/* Change status */}
                     <Tooltip title="Account Status" placement='top' arrow>
                     <IconButton

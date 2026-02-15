@@ -1,25 +1,9 @@
-import Navbar from "../../components/common/Navbar";
-import LeaveCard from "../../components/cards/LeaveCard";
-import LeaveHistoryTable from "../../components/tables/LeaveHistoryTable";
-import LeaveForm from "../../components/forms/LeaveForm";
+// import LeaveHistoryTable from "../../components/tables/LeaveHistoryTable";
 
-function EmployeeHome() {
-  return (
-    <div>
-      <Navbar />
+// export default function EmployeeHome() {
+//   return (
+//     <LeaveHistoryTable/>
+//   );
+// }
 
-      <h2>Employee Dashboard</h2>
 
-      <div className="cards">
-        <LeaveCard title="Total Leave" value={20} />
-        <LeaveCard title="Taken Leave" value={8} />
-        <LeaveCard title="Remaining Leave" value={12} />
-      </div>
-
-      <LeaveHistoryTable />
-      <LeaveForm />
-    </div>
-  );
-}
-
-export default EmployeeHome;

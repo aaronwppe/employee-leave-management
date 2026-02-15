@@ -21,7 +21,7 @@ class WeekOffViewSet(
     http_method_names = ["get"]
     queryset = WeekOff.objects.all()
     serializer_class = serializers.WeekOffListSerializer
-    permission_classes = [IsAdminRole]
+    permission_classes = [permissions.AllowAny]
     pagination_class = None
 
     def list(self, request, *args, **kwargs):
