@@ -1,11 +1,9 @@
 import EmployeeTable from "../../components/tables/EmployeeTable";
 
-export default function AdminHome() {
+export default function AccountsPage() {
   return (
     <div>
       <EmployeeTable />
     </div>
   );
 }
-
- 

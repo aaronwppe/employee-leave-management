@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import {
   Box,
   Button,
@@ -9,12 +9,12 @@ import {
   IconButton,
   InputAdornment,
   Snackbar,
-  Alert
+  Alert,
 } from "@mui/material";
 import { Visibility, VisibilityOff, CheckCircle } from "@mui/icons-material";
-import logo from "../public/logo.png";
+import logo from "../../assets/logo.png";
 
-function SetPassword() {
+function PasswordSetup() {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
@@ -31,10 +31,10 @@ function SetPassword() {
     uppercase: /[A-Z]/.test(newPassword),
     lowercase: /[a-z]/.test(newPassword),
     number: /[0-9]/.test(newPassword),
-    special: /[@$!%*?&]/.test(newPassword)
+    special: /[@$!%*?&]/.test(newPassword),
   };
 
-  const validatePassword = (password) => {
+  const validatePassword = () => {
     return Object.values(conditions).every(Boolean);
   };
 
@@ -69,21 +69,14 @@ function SetPassword() {
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
-          justifyContent: "center"
+          justifyContent: "center",
         }}
       >
-        {/* Logo */}
-        
-
-        {/* Paper Form */}
         <Paper elevation={3} sx={{ p: 4, width: "100%", borderRadius: 3 }}>
-            <Box sx={{ mb: 4, textAlign: "center" }}>
-          <img
-            src={logo}
-            alt="Logo"
-            style={{ width: 120, height: "auto" }}
-          />
-        </Box>
+          <Box sx={{ mb: 4, textAlign: "center" }}>
+            <img src={logo} alt="Logo" style={{ width: 120, height: "auto" }} />
+          </Box>
+
           <Typography variant="h5" align="center" gutterBottom>
             Set New Password
           </Typography>
@@ -96,14 +89,14 @@ function SetPassword() {
             value={newPassword}
             onChange={(e) => setNewPassword(e.target.value)}
             error={Boolean(error)}
-            InputProps={{
+            slotProps={{
               endAdornment: (
                 <InputAdornment position="end">
                   <IconButton onClick={handleTogglePassword} edge="end">
                     {showPassword ? <VisibilityOff /> : <Visibility />}
                   </IconButton>
                 </InputAdornment>
-              )
+              ),
             }}
           />
 
@@ -138,7 +131,7 @@ function SetPassword() {
                     alignItems: "center",
                     color: valid ? "green" : "gray",
                     fontSize: "0.875rem",
-                    mb: 0.5
+                    mb: 0.5,
                   }}
                 >
                   <CheckCircle fontSize="small" />
@@ -156,19 +149,23 @@ function SetPassword() {
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
             error={Boolean(error)}
-            InputProps={{
+            slotProps={{
               endAdornment: (
                 <InputAdornment position="end">
                   <IconButton onClick={handleTogglePassword} edge="end">
                     {showPassword ? <VisibilityOff /> : <Visibility />}
                   </IconButton>
                 </InputAdornment>
-              )
+              ),
             }}
           />
 
           <Box sx={{ mt: 3, display: "flex", justifyContent: "flex-end" }}>
-            <Button variant="contained" sx={{ px: 4, py: 1 }} onClick={handleSubmit}>
+            <Button
+              variant="contained"
+              sx={{ px: 4, py: 1 }}
+              onClick={handleSubmit}
+            >
               Confirm
             </Button>
           </Box>
@@ -195,4 +192,4 @@ function SetPassword() {
   );
 }
 
-export default SetPassword;
+export default PasswordSetup;

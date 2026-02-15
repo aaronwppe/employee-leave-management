@@ -1,8 +1,8 @@
-import AxiosInstance from "./Axios";
+import api from "./client";
 
 // GET /api/holiday?year=YYYY
 export const getHolidays = async (year) => {
-  const res = await AxiosInstance.get(`holiday`, {
+  const res = await api.get(`holiday`, {
     params: { year },
   });
   return res.data.data.holidays;
@@ -10,12 +10,12 @@ export const getHolidays = async (year) => {
 
 // POST /api/holiday
 export const addHoliday = async (payload) => {
-  const res = await AxiosInstance.post("holiday", payload);
+  const res = await api.post("holiday", payload);
   return res.data;
 };
 
 // DELETE /api/holiday/{id}
 export const deleteHoliday = async (id) => {
-  const res = await AxiosInstance.delete(`holiday/${id}`);
+  const res = await api.delete(`holiday/${id}`);
   return res.data;
 };

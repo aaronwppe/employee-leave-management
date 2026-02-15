@@ -1,27 +1,53 @@
-import "./App.css";
-import { Routes, Route } from 'react-router';
+import { Routes, Route } from "react-router-dom";
+import ProtectedRoute from "./routes/ProtectedRoute";
+import PublicOnlyRoute from "./routes/PublicOnlyRoute";
 import AdminLayout from "./layouts/AdminLayout";
 import EmployeeLayout from "./layouts/EmployeeLayout";
-import SetPassword from "./pages/SetPassword";
-import Login from "./pages/Login"
-import LeaveForm from "./components/forms/LeaveForm";
-import AdminHome from "./pages/admin/AdminHome";
-import EmployeeHome from "./pages/employee/EmployeeHome";
-import AdminLeaveForm from "./components/forms/AdminLeaveForm";
+import LoginPage from "./pages/common/LoginPage";
+import useAuth from "./context/useAuth";
+import { useEffect } from "react";
+import { setAuthContext } from "./services/api/client";
+import LeavePage from "./pages/employee/LeavePage";
+import AccountsPage from "./pages/admin/AccountsPage";
 
-function App() {
+export default function App() {
+  const auth = useAuth();
+
+  useEffect(() => {
+    setAuthContext(auth);
+  }, [auth]);
+
   return (
-      <Routes>
-        <Route path="/admin" element={<AdminLayout />} />
-        <Route index element={<AdminHome/>} />
-        <Route path="/employee" element={<EmployeeLayout />} />
-        <Route path="/home" element={<EmployeeHome/>} />
-        <Route path="/set-password" element={<SetPassword />} />
-        <Route path="/login" element={<Login/>} />
-        <Route path="/apply-leave" element={<LeaveForm/>} />
-        <Route path="/admin/leave" element={<AdminLeaveForm/>} />
-      </Routes>
+    <Routes>
+      <Route
+        path="/login"
+        element={
+          <PublicOnlyRoute>
+            <LoginPage />
+          </PublicOnlyRoute>
+        }
+      />
+
+      <Route
+        path="/admin"
+        element={
+          <ProtectedRoute role="ADMIN">
+            <AdminLayout />
+          </ProtectedRoute>
+        }
+      >
+        <Route index element={<AccountsPage />} />
+        <Route path="/admin/leaves" element={<LeavePage />} />
+      </Route>
+
+      <Route
+        path="/"
+        element={
+          <ProtectedRoute>
+            <EmployeeLayout />
+          </ProtectedRoute>
+        }
+      />
+    </Routes>
   );
 }
-
-export default App;
