@@ -9,6 +9,7 @@ import { useEffect } from "react";
 import { setAuthContext } from "./services/api/client";
 import LeavePage from "./pages/employee/LeavePage";
 import AccountsPage from "./pages/admin/AccountsPage";
+import SetPasswordPage from "./pages/common/SetPasswordPage";
 
 export default function App() {
   const auth = useAuth();
@@ -48,6 +49,8 @@ export default function App() {
           </ProtectedRoute>
         }
       />
+
+      <Route path="/set-password" element={<SetPasswordPage />} />
     </Routes>
   );
 }
