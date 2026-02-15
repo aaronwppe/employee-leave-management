@@ -35,3 +35,9 @@ export const updateAccount = async (id, data) => {
   const res = await api.put(`/account/${id}/`, data);
   return res.data.data.accounts;
 };
+
+// Get single account by ID
+export const getAccountById = async (id) => {
+  const res = await api.get(`/account/${id}/`);
+  return res.data.data;
+};
