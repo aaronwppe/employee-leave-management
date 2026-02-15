@@ -1,34 +1,30 @@
-import { AppBar, Toolbar, Typography, Button, Box } from "@mui/material";
-import { useNavigate } from "react-router";
-import logo from "../../public/logo.png";
+import { AppBar, Toolbar, Button, Box } from "@mui/material";
+import { useNavigate } from "react-router-dom";
+import logo from "../../assets/logo.png";
+import useAuth from "../../context/useAuth";
 
-function Navbar({ role }) {
+function Navbar({ role = "EMPLPOYEE" }) {
   const navigate = useNavigate();
-
-  const handleLogout = () => {
-    navigate("/login");
-  };
+  const { logout } = useAuth();
+  const isAdmin = role === "ADMIN";
 
   return (
     <AppBar
       position="static"
       sx={{
         backgroundColor: "#1976d2",
-        boxShadow: 3
+        boxShadow: 3,
       }}
     >
       <Toolbar sx={{ display: "flex", justifyContent: "space-between" }}>
-        
         <Box
           sx={{
             display: "flex",
             alignItems: "center",
             gap: 1,
-            cursor: "pointer"
+            cursor: "pointer",
           }}
-          onClick={() =>
-            navigate(role === "admin" ? "/admin" : "/employee")
-          }
+          onClick={() => navigate(isAdmin ? "/admin" : "/leaves")}
         >
           <img
             src={logo}
@@ -36,35 +32,27 @@ function Navbar({ role }) {
             style={{
               height: "40px",
               width: "40px",
-              objectFit: "contain"
+              objectFit: "contain",
             }}
           />
-          
         </Box>
 
         <Box sx={{ display: "flex", gap: 2 }}>
-
-          {role === "admin" && (
+          {isAdmin && (
             <>
-              <Button
-                color="inherit"
-                onClick={() => navigate("/admin")}
-              >
+              <Button color="inherit" onClick={() => navigate("/admin")}>
                 Home
               </Button>
 
               <Button
                 color="inherit"
-                onClick={() => navigate("/planner")}
+                onClick={() => navigate("/admin/planner")}
               >
                 Planner
               </Button>
 
-              <Button
-                color="inherit"
-                onClick={() => navigate("/apply-leave")}
-              >
-                Leaves
+              <Button color="inherit" onClick={() => navigate("/admin/leaves")}>
+                My Leaves
               </Button>
             </>
           )}
@@ -72,18 +60,17 @@ function Navbar({ role }) {
           <Button
             variant="outlined"
             color="inherit"
-            onClick={handleLogout}
+            onClick={logout}
             sx={{
               borderColor: "white",
               "&:hover": {
                 borderColor: "#fff",
-                backgroundColor: "rgba(255,255,255,0.1)"
-              }
+                backgroundColor: "rgba(255,255,255,0.1)",
+              },
             }}
           >
             Logout
           </Button>
-
         </Box>
       </Toolbar>
     </AppBar>

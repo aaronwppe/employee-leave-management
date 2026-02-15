@@ -1,21 +1,4 @@
-import AxiosInstance from "./Axios";
-
-// Login
-export const login = async (credentials) => {
-  const res = await AxiosInstance.post("login", credentials);
-  const token = res.data.token;
-
-  if (token) {
-    localStorage.setItem("token", token);
-  }
-
-  return res.data;
-};
-
-// Logout
-export const logout = () => {
-  localStorage.removeItem("token");
-};
+import api from "./client";
 
 // Create new employee
 export const createEmployee = async (formData, status) => {
@@ -29,19 +12,19 @@ export const createEmployee = async (formData, status) => {
     role: "EMPLOYEE",
   };
 
-  const res = await AxiosInstance.post("/account/", payload);
+  const res = await api.post("/account/", payload);
   return res.data;
 };
 
 // Get all accounts
 export const getAccounts = async () => {
-  const res = await AxiosInstance.get("/account/");
+  const res = await api.get("/account/");
   return res.data.data.accounts;
 };
 
 // Toggle account status
 export const toggleStatus = async (id, currentStatus) => {
-  const res = await AxiosInstance.patch(`/account/${id}/`, {
+  const res = await api.patch(`/account/${id}/`, {
     status: !currentStatus,
   });
   return res.data;
@@ -49,6 +32,6 @@ export const toggleStatus = async (id, currentStatus) => {
 
 // Update account
 export const updateAccount = async (id, data) => {
-  const res = await AxiosInstance.put(`/account/${id}/`, data);
+  const res = await api.put(`/account/${id}/`, data);
   return res.data.data.accounts;
 };
