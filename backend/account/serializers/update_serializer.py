@@ -24,7 +24,6 @@ class AccountUpdateSerializer(serializers.ModelSerializer):
         if not request or not request.user:
             raise ValidationError({"detail": "User must be logged in"})
 
-        validated_data["created_by"] = request.user
         validated_data["modified_by"] = request.user
 
         return super().update(instance, validated_data)
