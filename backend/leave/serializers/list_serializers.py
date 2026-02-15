@@ -35,3 +35,14 @@ class LeaveListRequestSerializer(serializers.Serializer):
         required=False,
         default=timezone.now().year,
     )
+
+    def validate(self, attrs):
+        if attrs.get("account_id") is not None:
+            return attrs
+
+        request = self.context.get("request")
+        if not request or not request.user:
+            raise serializers.ValidationError({"detail": "User must be logged in"})
+
+        attrs["account_id"] = request.user
+        return attrs
