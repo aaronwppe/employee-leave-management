@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import CircularProgress from "@mui/material/CircularProgress";
 import {
   Box,
   Button,
@@ -101,7 +102,7 @@ export default function LoginPage() {
   };
 
   return (
-    <Container maxWidth="sm">
+    <Container maxWidth="xm">
       <Box
         sx={{
           minHeight: "100vh",
@@ -111,7 +112,7 @@ export default function LoginPage() {
           justifyContent: "center",
         }}
       >
-        <Paper elevation={3} sx={{ p: 4, width: "100%", borderRadius: 3 }}>
+        <Paper elevation={3} sx={{ p: 4, width: "100%", maxWidth: 350, borderRadius: 3 }}>
           <Box sx={{ mb: 4, textAlign: "center" }}>
             <img src={logo} alt="Logo" style={{ width: 120, height: "auto" }} />
           </Box>
@@ -170,12 +171,19 @@ export default function LoginPage() {
           <Box sx={{ mt: 3, display: "flex", justifyContent: "flex-end" }}>
             <Button
               variant="contained"
-              sx={{ px: 4, py: 1 }}
+              sx={{ px: 4, py: 1, minWidth: 120 }}
               onClick={handleLogin}
               disabled={loading}
             >
-              Login
+              {loading ? (
+                <CircularProgress size={20} color="inherit" />
+              ) : (
+                "Login"
+              )}
             </Button>
+
+
+
           </Box>
         </Paper>
 
