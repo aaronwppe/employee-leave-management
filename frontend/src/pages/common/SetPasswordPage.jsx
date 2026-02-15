@@ -1,4 +1,5 @@
 import { useState } from "react";
+import CircularProgress from "@mui/material/CircularProgress";
 import {
   Box,
   Button,
@@ -20,6 +21,7 @@ function SetPasswordPage() {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [searchParams] = useSearchParams();
@@ -78,13 +80,14 @@ function SetPasswordPage() {
     } catch (err) {
       console.log(err);
       setError("Invalid link");
+    } finally {
+      setLoading(false); 
     }
-
     setOpenSnackbar(true);
   };
 
   return (
-    <Container maxWidth="sm">
+    <Container maxWidth="xm">
       <Box
         sx={{
           minHeight: "100vh",
@@ -94,7 +97,7 @@ function SetPasswordPage() {
           justifyContent: "center",
         }}
       >
-        <Paper elevation={3} sx={{ p: 4, width: "100%", borderRadius: 3 }}>
+        <Paper elevation={3} sx={{ p: 4, width: "100%", maxWidth: 350, borderRadius: 3 }}>
           <Box sx={{ mb: 4, textAlign: "center" }}>
             <img src={logo} alt="Logo" style={{ width: 120, height: "auto" }} />
           </Box>
@@ -185,11 +188,17 @@ function SetPasswordPage() {
           <Box sx={{ mt: 3, display: "flex", justifyContent: "flex-end" }}>
             <Button
               variant="contained"
-              sx={{ px: 4, py: 1 }}
+              sx={{ px: 4, py: 1, minWidth: 120 }}
               onClick={handleSubmit}
+              disabled={loading}
             >
-              Confirm
+              {loading ? (
+                <CircularProgress size={20} color="inherit" />
+              ) : (
+                "Confirm"
+              )}
             </Button>
+
           </Box>
         </Paper>
 
