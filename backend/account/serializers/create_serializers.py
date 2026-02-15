@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from rest_framework.exceptions import ValidationError
 from account.models import Account
 
 
@@ -20,12 +21,13 @@ class AccountCreateSerializer(serializers.ModelSerializer):
         ]
 
     def create(self, validated_data):
-        # created and modified by system account (id=1)
-        # this is meant to be temporary
-        # when auth module is ready the user's account must be used here
-        system_account = Account.objects.filter(id=1).first()
-        validated_data["created_by"] = system_account
-        validated_data["modified_by"] = system_account
+        request = self.context.get("request")
+
+        if not request or not request.user:
+            raise ValidationError({"detail": "User must be logged in"})
+
+        validated_data["created_by"] = request.user
+        validated_data["modified_by"] = request.user
 
         return Account.objects.create_user(**validated_data)
 
