@@ -13,16 +13,23 @@ import {
 } from "@mui/material";
 import { Visibility, VisibilityOff, CheckCircle } from "@mui/icons-material";
 import logo from "../../assets/logo.png";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import axios from "axios";
 
-function PasswordSetup() {
+function SetPasswordPage() {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [openSnackbar, setOpenSnackbar] = useState(false);
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+
+  const accountId = searchParams.get("account_id");
+  const token = searchParams.get("token");
 
   const handleTogglePassword = () => {
-    setShowPassword(!showPassword);
+    setShowPassword((prev) => !prev);
   };
 
   // Password conditions
@@ -38,7 +45,7 @@ function PasswordSetup() {
     return Object.values(conditions).every(Boolean);
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!newPassword || !confirmPassword) {
       setError("Both fields are required");
       setOpenSnackbar(true);
@@ -57,7 +64,22 @@ function PasswordSetup() {
       return;
     }
 
-    setError("");
+    try {
+      await axios.post(
+        `${import.meta.env.VITE_BASE_API_URL}/auth/password-reset/confirm/`,
+        {
+          account_id: accountId,
+          token: token,
+          password: newPassword,
+        },
+      );
+      setError("");
+      navigate("/login");
+    } catch (err) {
+      console.log(err);
+      setError("Invalid link");
+    }
+
     setOpenSnackbar(true);
   };
 
@@ -192,4 +214,4 @@ function PasswordSetup() {
   );
 }
 
-export default PasswordSetup;
+export default SetPasswordPage;
