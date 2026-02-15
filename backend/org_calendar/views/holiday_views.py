@@ -1,10 +1,11 @@
-from rest_framework import viewsets, mixins, permissions
+from rest_framework import viewsets, mixins
 from rest_framework.response import Response
 from rest_framework.status import HTTP_201_CREATED
 from org_calendar import serializers
 from server.utils.responses import ApiResponseMixin
 from org_calendar.models import Holiday
 from account.models import Account
+from org_calendar.permissions import OrgCalendarPermission
 
 
 class HolidayViewSet(
@@ -17,7 +18,7 @@ class HolidayViewSet(
     http_method_names = ["get", "post", "delete"]
     queryset = Holiday.objects.filter(is_deleted=False)
     pagination_class = None
-    # permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [OrgCalendarPermission]
 
     def get_serializer_class(self):
         if self.action == "list":

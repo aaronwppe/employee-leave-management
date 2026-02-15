@@ -4,63 +4,74 @@ from leave.models import Leave
 from account.models import Account
 
 
-
-class LeaveCreateSerializer(serializers.ModelSerializer):
+class _LeaveCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Leave
-        fields = ["start_date", "end_date", "reason"]
+        fields = [
+            "start_date",
+            "end_date",
+            "reason",
+        ]
 
     def validate(self, attrs):
         start_date = attrs["start_date"]
         end_date = attrs["end_date"]
 
-        today=timezone.now().date()
-        current_year=today.year
+        today = timezone.now().date()
+        current_year = today.year
 
         if start_date > end_date:
             raise serializers.ValidationError("Start date cannot be after end date.")
 
         if start_date < timezone.now().date():
             raise serializers.ValidationError("Cannot apply leave in the past.")
-        
-        if start_date.year != current_year or end_date.year !=current_year:
-            raise serializers.ValidationError("Leave can be applied only for the current year.")
-        
-        return attrs
 
-    def create(self, validated_data):
-        request = self.context["request"]
-
-        system_account = Account.objects.filter(
-            email="system0@gmail.com"
-        ).first()
-
-        if not system_account:
+        if start_date.year != current_year or end_date.year != current_year:
             raise serializers.ValidationError(
-                "System account not found."
+                "Leave can be applied only for the current year."
             )
 
-        account = system_account
+        return attrs
 
-        total_days = (
-         validated_data["end_date"] - validated_data["start_date"]
-        ).days + 1
 
-        if account.remaining_leaves < total_days:
-            raise serializers.ValidationError(
-             "Cannot apply for this leave."
-        )
+class EmployeeLeaveCreateSerializer(_LeaveCreateSerializer):
+    def create(self, validated_data):
+        request = self.context.get("request")
 
-        leave = Leave.objects.create(
-            account=account,
-            number_of_leaves=total_days,
-            **validated_data,
-        )
+        if not request or not request.user:
+            raise serializers.ValidationError({"detail": "User must be logged in"})
 
-        account.remaining_leaves -= total_days
-        account.save(update_fields=["remaining_leaves"])
+        validated_data["account"] = request.user
+        validated_data["created_by"] = request.user
 
-        return leave
+        return Leave.create_leave(**validated_data)
+
+
+class AdminLeaveCreateSerializer(_LeaveCreateSerializer):
+    account_id = serializers.PrimaryKeyRelatedField(
+        queryset=Account.objects.all(),
+        source="account",
+    )
+
+    class Meta:
+        model = Leave
+        fields = [
+            "account_id",
+            "start_date",
+            "end_date",
+            "reason",
+        ]
+
+    def create(self, validated_data):
+        request = self.context.get("request")
+
+        if not request or not request.user:
+            raise serializers.ValidationError({"detail": "User must be logged in"})
+
+        validated_data["created_by"] = request.user
+
+        return Leave.create_leave(**validated_data)
+
 
 class LeaveCreateResponseSerializer(serializers.ModelSerializer):
     class Meta:

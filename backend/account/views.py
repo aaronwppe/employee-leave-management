@@ -6,11 +6,13 @@ from rest_framework.response import Response
 from rest_framework.status import HTTP_200_OK, HTTP_201_CREATED
 from django.db import transaction
 from account import services
+from account.permissions import AccountPermission
 
 
 class AccountViewSet(ApiResponseMixin, viewsets.ModelViewSet):
     http_method_names = ["get", "post", "patch", "put"]
     queryset = Account.objects.all()
+    permission_classes = [AccountPermission]
 
     def get_serializer_class(self):
         if self.action == "list":

@@ -1,11 +1,12 @@
-from rest_framework import viewsets, mixins, permissions
+from rest_framework import viewsets, mixins
 from rest_framework.response import Response
 from rest_framework.status import HTTP_201_CREATED
 from django.db.models import Q
 from leave.models import Leave
-from leave import serializers
 from server.utils.responses import ApiResponseMixin
-from account.models import Account
+from account.models import AccountRole
+from leave.permissions import LeavePermission
+from leave import serializers
 
 
 class LeaveViewSet(
@@ -18,7 +19,7 @@ class LeaveViewSet(
     http_method_names = ["get", "post", "delete"]
     queryset = Leave.objects.filter(is_deleted=False)
     pagination_class = None
-    # permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [LeavePermission]
 
     def get_queryset(self):
         queryset = super().get_queryset()
@@ -26,16 +27,12 @@ class LeaveViewSet(
         if self.action != "list":
             return queryset
 
-        query_params = {
-            key: self.request.query_params.get(key) for key in self.request.query_params
-        }
-        if query_params.get("account_id") is None:
-            # system id = 1
-            # this is a temporary fix
-            query_params["account_id"] = 1
+        if self.request.user.role == AccountRole.EMPLOYEE:
+            queryset = queryset.filter(account=self.request.user)
 
         serializer = serializers.LeaveListRequestSerializer(
-            data=query_params,
+            data=self.request.query_params,
+            context={"request": self.request},
         )
         serializer.is_valid(raise_exception=True)
         account = serializer.validated_data["account_id"]
@@ -51,10 +48,14 @@ class LeaveViewSet(
             return serializers.LeaveListSerializer
 
         if self.action == "create":
-            return serializers.LeaveCreateSerializer
+            if self.request.user.role == AccountRole.ADMIN:
+                return serializers.AdminLeaveCreateSerializer
+
+            if self.request.user.role == AccountRole.EMPLOYEE:
+                return serializers.EmployeeLeaveCreateSerializer
 
         raise NotImplementedError(
-            f"Serializer for action '{self.action}' has not been implemented."
+            f"Serializer for action '{self.action}' and role '{self.request.user.role}' has not been implemented."
         )
 
     def list(self, request, *args, **kwargs):
@@ -79,5 +80,4 @@ class LeaveViewSet(
         )
 
     def perform_destroy(self, instance):
-        system_account = Account.objects.get(id=1)
-        instance.soft_delete(system_account)
+        instance.soft_delete(self.request.user)
