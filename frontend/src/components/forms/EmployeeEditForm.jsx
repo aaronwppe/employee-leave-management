@@ -7,109 +7,98 @@ import {
   Typography,
   Paper,
   Snackbar,
-  Alert,
-  IconButton
+  IconButton,
+  Switch,
+  FormControlLabel,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
-import { createEmployee } from "../../services/api/account.api";
+import { updateAccount } from "../../services/api/account.api";
 
-function EmployeeOnboard({ onEmployeeCreated, onClose }) {
+export default function EmployeeEditForm({ onClose, row }) {
   const [formData, setFormData] = useState({
-    first_name: "",
-    last_name: "",
-    email: "",
-    allocated_leaves: "",
-    remaining_leaves: ""
+    first_name: row.first_name,
+    last_name: row.last_name,
+    email: row.email,
+    allocated_leaves: row.allocated_leaves,
+    status: row.status,
   });
+  console.log();
 
   const [errors, setErrors] = useState({});
   const [alert, setAlert] = useState({
     open: false,
     message: "",
-    severity: "success"
+    severity: "success",
   });
 
-  const [loadingType, setLoadingType] = useState(null);
+  const [loading, setLoading] = useState(null);
 
   const handleChange = (e) => {
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [e.target.name]: e.target.value,
     });
   };
 
   const validateForm = () => {
     let newErrors = {};
 
-    if (!formData.first_name.trim())
+    if (!formData.first_name.trim()) {
       newErrors.first_name = "First name is required";
+    }
 
-    if (!formData.last_name.trim())
+    if (!formData.last_name.trim()) {
       newErrors.last_name = "Last name is required";
+    }
 
-    if (!formData.email.trim())
+    if (!formData.email.trim()) {
       newErrors.email = "Email is required";
-    else if (!/\S+@\S+\.\S+/.test(formData.email))
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
       newErrors.email = "Enter valid email";
+    }
 
-    if (!formData.allocated_leaves)
+    if (!formData.allocated_leaves) {
       newErrors.allocated_leaves = "Allocated leaves required";
-
-    if (!formData.remaining_leaves)
-      newErrors.remaining_leaves = "Remaining leaves required";
+    } else if (
+      formData.allocated_leaves < 0 ||
+      formData.allocated_leaves > 365
+    ) {
+      newErrors.allocated_leaves =
+        "Allocated leaves should be in range between 0 and 365";
+    }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const resetForm = () => {
-    setFormData({
-      first_name: "",
-      last_name: "",
-      email: "",
-      allocated_leaves: "",
-      remaining_leaves: ""
-    });
-    setErrors({});
-  };
-
-  const handleSubmit = async (type) => {
-    if (!validateForm()) return;
-
-    const isActive = type === "activate";
-
-    setLoadingType(type);
-
+  const handleSaveRow = async () => {
     try {
-      const response = await createEmployee(formData, isActive);
-
-      if (response.success) {
-        setAlert({
-          open: true,
-          severity: "success",
-          message:
-            type === "activate"
-              ? "Employee created and activated successfully"
-              : "Employee created successfully"
-        });
-
-        // resetForm();
-
-        if (onEmployeeCreated) {
-          await onEmployeeCreated(); // refresh table
-        }
-
-        onClose();
-      }
+      setLoading(true);
+      const id = row.id;
+      await updateAccount({
+        id: id,
+        first_name: formData.first_name,
+        last_name: formData.last_name,
+        email: formData.email,
+        allocated_leaves: formData.allocated_leaves,
+        status: formData.status,
+      });
+      setLoading(false);
+      onClose();
     } catch (error) {
+      console.error("Update failed:", error);
       setAlert({
         open: true,
         severity: "error",
-        message: error?.message || "Error while creating employee"
+        message: "Encountered an error. Please try again later.",
       });
-    } finally {
-      setLoadingType(null);
+      setLoading(false);
     }
+  };
+
+  const handleSubmit = () => {
+    validateForm();
+    handleSaveRow(formData, row);
   };
 
   return (
@@ -121,7 +110,7 @@ function EmployeeOnboard({ onEmployeeCreated, onClose }) {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        zIndex: 1400
+        zIndex: 1400,
       }}
     >
       <Paper
@@ -130,7 +119,7 @@ function EmployeeOnboard({ onEmployeeCreated, onClose }) {
           width: 420,
           p: 3,
           borderRadius: 3,
-          position: "relative"
+          position: "relative",
         }}
       >
         {/* Close icon */}
@@ -140,14 +129,14 @@ function EmployeeOnboard({ onEmployeeCreated, onClose }) {
             position: "absolute",
             top: 10,
             right: 10,
-            color: "error.main"
+            color: "error.main",
           }}
         >
           <CloseIcon />
         </IconButton>
 
         <Typography variant="h5" align="center" sx={{ mb: 2 }}>
-          Onboard Employee
+          Edit Employee
         </Typography>
 
         <Box display="flex" flexDirection="column" gap={2}>
@@ -192,45 +181,30 @@ function EmployeeOnboard({ onEmployeeCreated, onClose }) {
             fullWidth
           />
 
-          <TextField
-            label="Leaves for Current Year"
-            name="remaining_leaves"
-            type="number"
-            value={formData.remaining_leaves}
-            onChange={handleChange}
-            error={!!errors.remaining_leaves}
-            helperText={errors.remaining_leaves}
-            fullWidth
+          <FormControlLabel
+            control={
+              <Switch
+                name="is_active"
+                checked={formData.status}
+                onChange={handleChange}
+                color="success"
+              />
+            }
+            label={formData.status ? "Active Status" : "Inactive Status"}
           />
 
           <Box display="flex" gap={2} justifyContent="flex-end">
             <Button
               variant="contained"
-              color="success"
-              onClick={() => handleSubmit("activate")}
-              disabled={loadingType !== null}
-            >
-              {loadingType === "activate" ? (
-                <CircularProgress size={20} color="inherit" />
-              ) : (
-                "Create & Activate"
-              )}
-            </Button>
-
-
-            <Button
-              variant="contained"
               onClick={() => handleSubmit("create")}
-              disabled={loadingType !== null}
+              // disabled={loadingType !== null}
             >
-              {loadingType === "create" ? (
+              {loading ? (
                 <CircularProgress size={20} color="inherit" />
               ) : (
-                "Create"
+                "Save"
               )}
             </Button>
-
-
           </Box>
         </Box>
       </Paper>
@@ -240,10 +214,7 @@ function EmployeeOnboard({ onEmployeeCreated, onClose }) {
         autoHideDuration={3000}
         onClose={() => setAlert({ ...alert, open: false })}
         anchorOrigin={{ vertical: "top", horizontal: "center" }}
-      >
-      </Snackbar>
+      ></Snackbar>
     </Box>
   );
 }
-
-export default EmployeeOnboard;

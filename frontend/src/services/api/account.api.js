@@ -31,9 +31,25 @@ export const toggleStatus = async (id, currentStatus) => {
 };
 
 // Update account
-export const updateAccount = async (id, data) => {
-  const res = await api.put(`/account/${id}/`, data);
-  return res.data.data.accounts;
+export const updateAccount = async ({
+  id,
+  first_name,
+  last_name,
+  email,
+  allocated_leaves,
+  status,
+  role = "EMPLOYEE",
+}) => {
+  console.log(id, first_name, last_name, email, allocated_leaves, status, role);
+  const res = await api.put(`/account/${id}/`, {
+    first_name,
+    last_name,
+    email,
+    allocated_leaves,
+    status,
+    role,
+  });
+  return res.data.data.success;
 };
 
 // Get single account by ID
