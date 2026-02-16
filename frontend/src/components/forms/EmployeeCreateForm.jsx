@@ -8,25 +8,25 @@ import {
   Paper,
   Snackbar,
   Alert,
-  IconButton
+  IconButton,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import { createEmployee } from "../../services/api/account.api";
 
-function EmployeeOnboard({ onEmployeeCreated, onClose }) {
+export default function EmployeeCreateForm({ onEmployeeCreated, onClose }) {
   const [formData, setFormData] = useState({
     first_name: "",
     last_name: "",
     email: "",
     allocated_leaves: "",
-    remaining_leaves: ""
+    remaining_leaves: "",
   });
 
   const [errors, setErrors] = useState({});
   const [alert, setAlert] = useState({
     open: false,
     message: "",
-    severity: "success"
+    severity: "success",
   });
 
   const [loadingType, setLoadingType] = useState(null);
@@ -34,7 +34,7 @@ function EmployeeOnboard({ onEmployeeCreated, onClose }) {
   const handleChange = (e) => {
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [e.target.name]: e.target.value,
     });
   };
 
@@ -47,8 +47,7 @@ function EmployeeOnboard({ onEmployeeCreated, onClose }) {
     if (!formData.last_name.trim())
       newErrors.last_name = "Last name is required";
 
-    if (!formData.email.trim())
-      newErrors.email = "Email is required";
+    if (!formData.email.trim()) newErrors.email = "Email is required";
     else if (!/\S+@\S+\.\S+/.test(formData.email))
       newErrors.email = "Enter valid email";
 
@@ -60,17 +59,6 @@ function EmployeeOnboard({ onEmployeeCreated, onClose }) {
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  };
-
-  const resetForm = () => {
-    setFormData({
-      first_name: "",
-      last_name: "",
-      email: "",
-      allocated_leaves: "",
-      remaining_leaves: ""
-    });
-    setErrors({});
   };
 
   const handleSubmit = async (type) => {
@@ -90,7 +78,7 @@ function EmployeeOnboard({ onEmployeeCreated, onClose }) {
           message:
             type === "activate"
               ? "Employee created and activated successfully"
-              : "Employee created successfully"
+              : "Employee created successfully",
         });
 
         // resetForm();
@@ -105,7 +93,7 @@ function EmployeeOnboard({ onEmployeeCreated, onClose }) {
       setAlert({
         open: true,
         severity: "error",
-        message: error?.message || "Error while creating employee"
+        message: error?.message || "Error while creating employee",
       });
     } finally {
       setLoadingType(null);
@@ -121,7 +109,7 @@ function EmployeeOnboard({ onEmployeeCreated, onClose }) {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        zIndex: 1400
+        zIndex: 1400,
       }}
     >
       <Paper
@@ -130,7 +118,7 @@ function EmployeeOnboard({ onEmployeeCreated, onClose }) {
           width: 420,
           p: 3,
           borderRadius: 3,
-          position: "relative"
+          position: "relative",
         }}
       >
         {/* Close icon */}
@@ -140,7 +128,7 @@ function EmployeeOnboard({ onEmployeeCreated, onClose }) {
             position: "absolute",
             top: 10,
             right: 10,
-            color: "error.main"
+            color: "error.main",
           }}
         >
           <CloseIcon />
@@ -217,7 +205,6 @@ function EmployeeOnboard({ onEmployeeCreated, onClose }) {
               )}
             </Button>
 
-
             <Button
               variant="contained"
               color="primary"
@@ -230,8 +217,6 @@ function EmployeeOnboard({ onEmployeeCreated, onClose }) {
                 "Create"
               )}
             </Button>
-
-
           </Box>
         </Box>
       </Paper>
@@ -241,10 +226,7 @@ function EmployeeOnboard({ onEmployeeCreated, onClose }) {
         autoHideDuration={3000}
         onClose={() => setAlert({ ...alert, open: false })}
         anchorOrigin={{ vertical: "top", horizontal: "center" }}
-      >
-      </Snackbar>
+      ></Snackbar>
     </Box>
   );
 }
-
-export default EmployeeOnboard;
