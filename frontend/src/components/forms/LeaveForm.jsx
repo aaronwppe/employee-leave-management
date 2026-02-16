@@ -13,6 +13,7 @@ import {
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
+
 import { addLeave } from "../../services/api/leave.api";
 import Calendar from "../common/Calendar";
 
@@ -52,10 +53,15 @@ export default function LeaveForm({
     let newErrors = {};
     const today = new Date().toISOString().split("T")[0];
 
-    if (!formData.start_date)
-      newErrors.start_date = "Start date is required";
-    if (!formData.end_date)
-      newErrors.end_date = "End date is required";
+    if (!formData.start_date) {
+      newErrors.start_date = "Please select a start date.";
+    } else if (formData.start_date < today) {
+      newErrors.start_date = "Start date cannot be in the past.";
+    }
+
+    if (!formData.end_date) {
+      newErrors.end_date = "Please select an end date.";
+    }
 
     if (
       formData.start_date &&
@@ -63,11 +69,14 @@ export default function LeaveForm({
       formData.start_date > formData.end_date
     ) {
       newErrors.end_date =
-        "End date cannot be before start date";
+        "End date must be the same as or after the start date.";
     }
 
-    if (!formData.reason.trim())
-      newErrors.reason = "Reason is required";
+    if (!formData.reason.trim()) {
+      newErrors.reason = "Please enter a reason for your leave.";
+    } else if (formData.reason.trim().length < 3) {
+      newErrors.reason = "Reason must be at least 3 characters.";
+    }
 
     setErrors(newErrors);
 
@@ -97,7 +106,9 @@ export default function LeaveForm({
         message: "Leave applied successfully.",
       });
 
-      if (onLeaveCreated) await onLeaveCreated();
+      if (onLeaveCreated) {
+        await onLeaveCreated();
+      }
       onClose();
     } catch (error) {
       setLoading(false);
@@ -112,15 +123,17 @@ export default function LeaveForm({
 
       let friendly = "Unable to apply leave. Please try again.";
 
-      if (apiMessage.toLowerCase().includes("overlap")) {
-        friendly =
-          "You already have a leave request for these dates.";
-      } else if (
-        msg.includes("already") ||
-        msg.includes("exists")
+      if (
+        msg.includes("overlap") ||
+        msg.includes("overlapping") ||
+        msg.includes("conflict")
       ) {
         friendly =
-          "This leave request already exists.";
+          "You already have a leave scheduled for these dates. Please choose different dates.";
+      } else if (msg.includes("already") || msg.includes("exists")) {
+        friendly = "A leave already exists for the selected dates.";
+      } else if (msg.includes("remaining")) {
+        friendly = "You do not have enough leave balance.";
       } else if (apiMessage) {
         friendly = apiMessage;
       }
@@ -148,7 +161,6 @@ export default function LeaveForm({
         }}
         onClick={onClose}
       >
-        {/* Wrapper */}
         <Box
           sx={{ display: "flex", alignItems: "flex-start", gap: 3 }}
           onClick={(e) => e.stopPropagation()}
@@ -292,7 +304,7 @@ export default function LeaveForm({
         onClose={() => setAlert({ ...alert, open: false })}
         anchorOrigin={{ vertical: "top", horizontal: "center" }}
       >
-        <Alert severity={alert.severity}>
+        <Alert severity={alert.severity} variant="filled">
           {alert.message}
         </Alert>
       </Snackbar>
