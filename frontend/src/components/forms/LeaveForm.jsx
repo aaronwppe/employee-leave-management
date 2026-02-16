@@ -146,40 +146,65 @@ export default function LeaveForm({ onClose, onLeaveCreated }) {
               <CloseIcon />
             </IconButton>
 
-            <Typography
-              variant="h5"
-              align="center"
-              sx={{ mb: 2 }}
-            >
+            <Typography variant="h5" align="center" sx={{ mb: 2 }}>
               Apply Leave
             </Typography>
 
-        <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-          <TextField
-            label="Start Date"
-            type="date"
-            name="start_date"
-            value={formData.start_date}
-            onChange={handleChange}
-            error={!!errors.start_date}
-            helperText={errors.start_date}
-            InputLabelProps={{ shrink: true }}
-            fullWidth
-            disabled={loading}
-          />
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
 
-          <TextField
-            label="End Date"
-            type="date"
-            name="end_date"
-            value={formData.end_date}
-            onChange={handleChange}
-            error={!!errors.end_date}
-            helperText={errors.end_date}
-            InputLabelProps={{ shrink: true }}
-            fullWidth
-            disabled={loading}
-          />
+              {/* Start Date */}
+              <TextField
+                label="Start Date"
+                name="start_date"
+                value={formData.start_date}
+                onChange={handleChange}
+                error={!!errors.start_date}
+                helperText={errors.start_date}
+                fullWidth
+                disabled={loading}
+                placeholder="YYYY-MM-DD"
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        onClick={() => {
+                          setActiveField("start_date");
+                          setCalendarOpen(true);
+                        }}
+                      >
+                        <CalendarTodayIcon />
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                }}
+              />
+
+              {/* End Date */}
+              <TextField
+                label="End Date"
+                name="end_date"
+                value={formData.end_date}
+                onChange={handleChange}
+                error={!!errors.end_date}
+                helperText={errors.end_date}
+                fullWidth
+                disabled={loading}
+                placeholder="YYYY-MM-DD"
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        onClick={() => {
+                          setActiveField("end_date");
+                          setCalendarOpen(true);
+                        }}
+                      >
+                        <CalendarTodayIcon />
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                }}
+              />
 
               <TextField
                 label="Reason"
@@ -207,10 +232,7 @@ export default function LeaveForm({ onClose, onLeaveCreated }) {
                   disabled={loading}
                 >
                   {loading ? (
-                    <CircularProgress
-                      size={22}
-                      color="inherit"
-                    />
+                    <CircularProgress size={22} color="inherit" />
                   ) : (
                     "Apply Leave"
                   )}
@@ -221,7 +243,7 @@ export default function LeaveForm({ onClose, onLeaveCreated }) {
 
           {/* Calendar on Right */}
           {calendarOpen && (
-            <Box sx={{ minWidth: 360 }}>
+            <Box sx={{ width: 380 }}>
               <Calendar
                 selectedDate={formData[activeField]}
                 year={new Date().getFullYear()}
@@ -243,13 +265,8 @@ export default function LeaveForm({ onClose, onLeaveCreated }) {
       <Snackbar
         open={alert.open}
         autoHideDuration={3000}
-        onClose={() =>
-          setAlert({ ...alert, open: false })
-        }
-        anchorOrigin={{
-          vertical: "top",
-          horizontal: "center",
-        }}
+        onClose={() => setAlert({ ...alert, open: false })}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
       >
         <Alert severity={alert.severity}>
           {alert.message}
