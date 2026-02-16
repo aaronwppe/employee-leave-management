@@ -13,15 +13,19 @@ import {
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
-
 import { addLeave } from "../../services/api/leave.api";
 import Calendar from "../common/Calendar";
 
-export default function LeaveForm({ onClose, onLeaveCreated }) {
+export default function LeaveForm({
+  onClose,
+  onLeaveCreated,
+  accountId = null,
+}) {
   const [formData, setFormData] = useState({
     start_date: "",
     end_date: "",
     reason: "",
+    account_id: accountId,
   });
 
   const [errors, setErrors] = useState({});
@@ -36,31 +40,31 @@ export default function LeaveForm({ onClose, onLeaveCreated }) {
   const [activeField, setActiveField] = useState(null);
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    setFormData((prev) => {
+      return { ...prev, [e.target.name]: e.target.value };
+    });
     if (errors[e.target.name]) {
-      setErrors({ ...errors, [e.target.name]: undefined });
+      setErrors((prev) => {
+        return { ...prev, [e.target.name]: undefined };
+      });
     }
   };
 
   const validateForm = () => {
     let newErrors = {};
 
-    if (!formData.start_date)
-      newErrors.start_date = "Start date is required";
-    if (!formData.end_date)
-      newErrors.end_date = "End date is required";
+    if (!formData.start_date) newErrors.start_date = "Start date is required";
+    if (!formData.end_date) newErrors.end_date = "End date is required";
 
     if (
       formData.start_date &&
       formData.end_date &&
       formData.start_date > formData.end_date
     ) {
-      newErrors.end_date =
-        "End date cannot be before start date";
+      newErrors.end_date = "End date cannot be before start date";
     }
 
-    if (!formData.reason.trim())
-      newErrors.reason = "Reason is required";
+    if (!formData.reason.trim()) newErrors.reason = "Reason is required";
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -85,14 +89,12 @@ export default function LeaveForm({ onClose, onLeaveCreated }) {
       let friendly = "Failed to apply leave.";
 
       if (apiMessage.toLowerCase().includes("overlap")) {
-        friendly =
-          "You already have a leave request for these dates.";
+        friendly = "You already have a leave request for these dates.";
       } else if (
         apiMessage.toLowerCase().includes("already") ||
         apiMessage.toLowerCase().includes("exists")
       ) {
-        friendly =
-          "This leave request already exists.";
+        friendly = "This leave request already exists.";
       } else if (apiMessage) {
         friendly = apiMessage;
       }
@@ -146,12 +148,15 @@ export default function LeaveForm({ onClose, onLeaveCreated }) {
               <CloseIcon />
             </IconButton>
 
-            <Typography variant="h5" align="center" sx={{ mb: 2, color: "primary.main" }}>
+            <Typography
+              variant="h5"
+              align="center"
+              sx={{ mb: 2, color: "primary.main" }}
+            >
               Apply Leave
             </Typography>
 
             <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-
               {/* Start Date */}
               <TextField
                 label="Start Date"
@@ -269,9 +274,7 @@ export default function LeaveForm({ onClose, onLeaveCreated }) {
         onClose={() => setAlert({ ...alert, open: false })}
         anchorOrigin={{ vertical: "top", horizontal: "center" }}
       >
-        <Alert severity={alert.severity}>
-          {alert.message}
-        </Alert>
+        <Alert severity={alert.severity}>{alert.message}</Alert>
       </Snackbar>
     </>
   );
