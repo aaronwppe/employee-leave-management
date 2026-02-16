@@ -134,7 +134,7 @@ export default function EmployeeCreateForm({ onEmployeeCreated, onClose }) {
           <CloseIcon />
         </IconButton>
 
-        <Typography variant="h5" align="center" sx={{ mb: 2 }}>
+        <Typography variant="h5" align="center" sx={{ mb: 2, color: "primary.main" }}>
           Onboard Employee
         </Typography>
 
@@ -207,6 +207,7 @@ export default function EmployeeCreateForm({ onEmployeeCreated, onClose }) {
 
             <Button
               variant="contained"
+              color="primary"
               onClick={() => handleSubmit("create")}
               disabled={loadingType !== null}
             >

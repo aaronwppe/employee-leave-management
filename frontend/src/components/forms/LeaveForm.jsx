@@ -180,7 +180,7 @@ export default function LeaveForm({ onClose, onLeaveCreated }) {
               <CloseIcon />
             </IconButton>
 
-            <Typography variant="h5" align="center" sx={{ mb: 2 }}>
+            <Typography variant="h5" align="center" sx={{ mb: 2, color: "primary.main" }}>
               Apply Leave
             </Typography>
 

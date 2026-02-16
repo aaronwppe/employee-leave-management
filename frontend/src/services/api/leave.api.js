@@ -1,13 +1,13 @@
 import api from "./client";
 
-export const getLeaves = async ({ year = null, account_id = null }) => {
+export const getLeaves = async ({ year = null, accountId = null }) => {
   let params = {};
 
   if (year) {
     params["year"] = year;
   }
-  if (account_id) {
-    params["account_id"] = account_id;
+  if (accountId) {
+    params["account_id"] = accountId;
   }
 
   const res = await api.get("/leave/", {

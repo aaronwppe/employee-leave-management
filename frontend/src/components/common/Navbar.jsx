@@ -32,8 +32,8 @@ function Navbar({ role = "EMPLOYEE" }) {
       <Container maxWidth={"100%"}>
         <AppBar
           position="static"
+          color="primary"
           sx={{
-            backgroundColor: "#081250",
             boxShadow: 3,
             borderRadius: 3,
           }}
@@ -138,12 +138,7 @@ function Navbar({ role = "EMPLOYEE" }) {
                 logout();
               }}
               variant="contained"
-              sx={{
-                backgroundColor: "#081250",
-                "&:hover": {
-                  backgroundColor: "#0a1a70",
-                },
-              }}
+              color="primary"
             >
               Yes, Logout
             </Button>

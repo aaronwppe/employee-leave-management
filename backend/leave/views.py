@@ -1,4 +1,4 @@
-from rest_framework import viewsets, mixins,status
+from rest_framework import viewsets, mixins, status
 from rest_framework.response import Response
 from rest_framework.status import HTTP_201_CREATED
 from django.db.models import Q
@@ -9,7 +9,6 @@ from leave.permissions import LeavePermission
 from leave import serializers
 from django.core.exceptions import ValidationError
 from django.utils.timezone import now
-
 
 
 class LeaveViewSet(
@@ -37,17 +36,15 @@ class LeaveViewSet(
                 Q(start_date__year=year) | Q(end_date__year=year)
             )
 
-        # Employee → only their leaves
         if self.request.user.role == AccountRole.EMPLOYEE:
             return queryset.filter(account=self.request.user)
 
-        # Admin → optional account filter
         account_id = self.request.query_params.get("account_id")
-        if account_id:
-            queryset = queryset.filter(account__id=account_id)
 
-        return queryset
+        if account_id is None:
+            account_id = self.request.user.id
 
+        return queryset.filter(account__id=account_id)
 
     def get_serializer_class(self):
         if self.action == "list":
@@ -69,7 +66,7 @@ class LeaveViewSet(
         return Response(
             data={
                 "leaves": response.data,
-            },      
+            },
             status=response.status_code,
         )
 
@@ -100,7 +97,7 @@ class LeaveViewSet(
             {"message": "Leave deleted successfully"},
             status=status.HTTP_200_OK,
         )
-    
+
     def perform_destroy(self, instance):
         # Prevent deleting past or current leaves
         if instance.start_date <= now().date():

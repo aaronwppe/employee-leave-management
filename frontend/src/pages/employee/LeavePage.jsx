@@ -56,7 +56,7 @@ function LeavePage() {
     } finally {
       setLoading(false);
     }
-  }, [user, selectedYear]); // FIX: added selectedYear
+  }, [user, selectedYear]);
 
   // Load account data once
   useEffect(() => {
