@@ -146,7 +146,7 @@ export default function LeaveForm({ onClose, onLeaveCreated }) {
               <CloseIcon />
             </IconButton>
 
-            <Typography variant="h5" align="center" sx={{ mb: 2 }}>
+            <Typography variant="h5" align="center" sx={{ mb: 2, color: "primary.main" }}>
               Apply Leave
             </Typography>
 
@@ -222,6 +222,7 @@ export default function LeaveForm({ onClose, onLeaveCreated }) {
               <Box display="flex" justifyContent="flex-end">
                 <Button
                   variant="contained"
+                  color="primary"
                   sx={{
                     py: 1.25,
                     px: 3,

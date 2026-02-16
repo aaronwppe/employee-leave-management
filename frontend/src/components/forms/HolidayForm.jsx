@@ -45,8 +45,8 @@ function HolidayForm({
           {/* Helper text (unchanged) */}
           <Box
             sx={{
-              bgcolor: dateError ? "#fdecea" : "transparent",
-              color: "#d32f2f",
+              bgcolor: dateError ? "error.light"  : "transparent",
+              color: "error.main",
               px: 1.2,
               py: 0.6,
               borderRadius: 1,
@@ -73,7 +73,7 @@ function HolidayForm({
             flex: 2,
             "& .MuiOutlinedInput-root": {
               borderRadius: 2,
-              backgroundColor: "#fafafa",
+              backgroundColor: "background.paper",
             },
           }}
         />
@@ -81,28 +81,19 @@ function HolidayForm({
         {/* Add button */}
         <Button
           variant="contained"
+          color="primary"
           onClick={onAdd}
           disabled={disabled}
           sx={{
             height: 56,
             minWidth: 56,
             borderRadius: 2,
-            backgroundColor: "#081250",
-            color: "#fff",
-            boxShadow: "0 2px 6px rgba(0,0,0,0.15)",
             textTransform: "none",
             fontWeight: 400,
             fontSize: "1rem",
             gap: 0.5,
 
-            "&:hover": {
-              backgroundColor: "#081250", // hover color
-            },
-
-            "&.Mui-disabled": {
-              backgroundColor: "#b0b0b0",
-              color: "#fff",
-            },
+            
           }}
         >
           <AddIcon fontSize="small" />
