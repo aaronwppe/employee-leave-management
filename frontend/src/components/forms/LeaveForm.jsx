@@ -8,6 +8,7 @@ import {
   Snackbar,
   Alert,
   IconButton,
+  CircularProgress,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import { addLeave } from "../../services/api/leave.api";
@@ -28,16 +29,9 @@ export default function LeaveForm({ onClose, onLeaveCreated }) {
   });
 
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
-
+    setFormData({ ...formData, [e.target.name]: e.target.value });
     if (errors[e.target.name]) {
-      setErrors({
-        ...errors,
-        [e.target.name]: undefined,
-      });
+      setErrors({ ...errors, [e.target.name]: undefined });
     }
   };
 
@@ -45,7 +39,6 @@ export default function LeaveForm({ onClose, onLeaveCreated }) {
     let newErrors = {};
 
     if (!formData.start_date) newErrors.start_date = "Start date is required";
-
     if (!formData.end_date) newErrors.end_date = "End date is required";
 
     if (
@@ -64,60 +57,40 @@ export default function LeaveForm({ onClose, onLeaveCreated }) {
 
   const handleSubmit = async () => {
     if (!validateForm()) return;
-
     setLoading(true);
 
     try {
       await addLeave(formData);
-
-      if (onLeaveCreated) {
-        await onLeaveCreated();
-      }
-
+      if (onLeaveCreated) await onLeaveCreated();
       onClose();
     } catch (error) {
-      const apiErrors = error.response?.data?.errors;
+      setLoading(false);
 
-      if (!apiErrors) {
-        setAlert({
-          open: true,
-          severity: "error",
-          message: "Failed to apply leave.",
-        });
-        return;
+      const apiMessage =
+        error.response?.data?.detail ||
+        JSON.stringify(error.response?.data?.errors) ||
+        "";
+
+      let friendly = "Failed to apply leave.";
+
+      if (apiMessage.toLowerCase().includes("overlap")) {
+        friendly =
+          "You already have a leave request for these dates. Please choose different dates.";
+      } else if (
+        apiMessage.toLowerCase().includes("already") ||
+        apiMessage.toLowerCase().includes("exists")
+      ) {
+        friendly =
+          "This leave request already exists. Please select different dates.";
+      } else if (apiMessage) {
+        friendly = apiMessage;
       }
 
-      if (Array.isArray(apiErrors)) {
-        setAlert({
-          open: true,
-          severity: "error",
-          message: apiErrors[0],
-        });
-        return;
-      }
-
-      let fieldErrors = {};
-      let generalMessage = "";
-
-      Object.keys(apiErrors).forEach((key) => {
-        if (key === "detail" || key === "non_field_errors") {
-          generalMessage = apiErrors[key][0] || apiErrors[key];
-        } else {
-          fieldErrors[key] = apiErrors[key][0];
-        }
+      setAlert({
+        open: true,
+        severity: "error",
+        message: friendly,
       });
-
-      if (Object.keys(fieldErrors).length > 0) {
-        setErrors(fieldErrors);
-      }
-
-      if (generalMessage) {
-        setAlert({
-          open: true,
-          severity: "error",
-          message: generalMessage,
-        });
-      }
     }
   };
 
@@ -144,15 +117,9 @@ export default function LeaveForm({ onClose, onLeaveCreated }) {
         }}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Close icon */}
         <IconButton
           onClick={onClose}
-          sx={{
-            position: "absolute",
-            top: 10,
-            right: 10,
-            color: "error.main",
-          }}
+          sx={{ position: "absolute", top: 10, right: 10, color: "error.main" }}
         >
           <CloseIcon />
         </IconButton>
@@ -161,14 +128,7 @@ export default function LeaveForm({ onClose, onLeaveCreated }) {
           Apply Leave
         </Typography>
 
-        <Box
-          sx={{
-            mt: 2,
-            display: "flex",
-            flexDirection: "column",
-            gap: 2,
-          }}
-        >
+        <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
           <TextField
             label="Start Date"
             type="date"
@@ -177,7 +137,7 @@ export default function LeaveForm({ onClose, onLeaveCreated }) {
             onChange={handleChange}
             error={!!errors.start_date}
             helperText={errors.start_date}
-            slotProps={{ shrink: true }}
+            InputLabelProps={{ shrink: true }}
             fullWidth
             disabled={loading}
           />
@@ -190,7 +150,7 @@ export default function LeaveForm({ onClose, onLeaveCreated }) {
             onChange={handleChange}
             error={!!errors.end_date}
             helperText={errors.end_date}
-            slotProps={{ shrink: true }}
+            InputLabelProps={{ shrink: true }}
             fullWidth
             disabled={loading}
           />
@@ -211,11 +171,15 @@ export default function LeaveForm({ onClose, onLeaveCreated }) {
           <Box display="flex" justifyContent="flex-end">
             <Button
               variant="contained"
-              sx={{ mt: 1, py: 1.25, px: 3, fontWeight: 600 }}
+              sx={{ py: 1.25, px: 3, fontWeight: 600, minWidth: 140 }}
               onClick={handleSubmit}
               disabled={loading}
             >
-              Apply Leave
+              {loading ? (
+                <CircularProgress size={22} color="inherit" />
+              ) : (
+                "Apply Leave"
+              )}
             </Button>
           </Box>
         </Box>
