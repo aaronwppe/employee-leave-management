@@ -51,6 +51,7 @@ class AdminLeaveCreateSerializer(_LeaveCreateSerializer):
     account_id = serializers.PrimaryKeyRelatedField(
         queryset=Account.objects.all(),
         source="account",
+        required=False,
     )
 
     class Meta:
@@ -69,6 +70,12 @@ class AdminLeaveCreateSerializer(_LeaveCreateSerializer):
             raise serializers.ValidationError({"detail": "User must be logged in"})
 
         validated_data["created_by"] = request.user
+
+        account = validated_data.get("account")
+        if account is None:
+            account = request.user
+
+        validated_data["account"] = account
 
         return Leave.create_leave(**validated_data)
 
