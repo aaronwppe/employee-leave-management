@@ -9,9 +9,13 @@ import {
   Alert,
   IconButton,
   CircularProgress,
+  InputAdornment,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
+import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
+
 import { addLeave } from "../../services/api/leave.api";
+import Calendar from "../common/Calendar";
 
 export default function LeaveForm({ onClose, onLeaveCreated }) {
   const [formData, setFormData] = useState({
@@ -28,6 +32,9 @@ export default function LeaveForm({ onClose, onLeaveCreated }) {
     severity: "success",
   });
 
+  const [calendarOpen, setCalendarOpen] = useState(false);
+  const [activeField, setActiveField] = useState(null);
+
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
     if (errors[e.target.name]) {
@@ -37,17 +44,11 @@ export default function LeaveForm({ onClose, onLeaveCreated }) {
 
   const validateForm = () => {
     let newErrors = {};
-    const today = new Date().toISOString().split("T")[0];
 
-    if (!formData.start_date) {
-      newErrors.start_date = "Please select a start date.";
-    } else if (formData.start_date < today) {
-      newErrors.start_date = "Start date cannot be in the past.";
-    }
-
-    if (!formData.end_date) {
-      newErrors.end_date = "Please select an end date.";
-    }
+    if (!formData.start_date)
+      newErrors.start_date = "Start date is required";
+    if (!formData.end_date)
+      newErrors.end_date = "End date is required";
 
     if (
       formData.start_date &&
@@ -55,27 +56,14 @@ export default function LeaveForm({ onClose, onLeaveCreated }) {
       formData.start_date > formData.end_date
     ) {
       newErrors.end_date =
-        "End date must be the same as or after the start date.";
+        "End date cannot be before start date";
     }
 
-    if (!formData.reason.trim()) {
-      newErrors.reason = "Please enter a reason for your leave.";
-    } else if (formData.reason.trim().length < 3) {
-      newErrors.reason = "Reason should be at least 3 characters.";
-    }
+    if (!formData.reason.trim())
+      newErrors.reason = "Reason is required";
 
     setErrors(newErrors);
-
-    if (Object.keys(newErrors).length > 0) {
-      setAlert({
-        open: true,
-        severity: "error",
-        message: "Please correct the highlighted fields.",
-      });
-      return false;
-    }
-
-    return true;
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async () => {
@@ -89,44 +77,24 @@ export default function LeaveForm({ onClose, onLeaveCreated }) {
     } catch (error) {
       setLoading(false);
 
-      // Safely extract backend message
-      let apiMessage = "";
+      const apiMessage =
+        error.response?.data?.detail ||
+        JSON.stringify(error.response?.data?.errors) ||
+        "";
 
-      if (error.response?.data) {
-        const data = error.response.data;
+      let friendly = "Failed to apply leave.";
 
-        if (typeof data === "string") {
-          apiMessage = data;
-        } else if (data.detail) {
-          apiMessage = data.detail;
-        } else if (data.message) {
-          apiMessage = data.message;
-        } else if (data.errors) {
-          apiMessage = JSON.stringify(data.errors);
-        } else {
-          apiMessage = JSON.stringify(data);
-        }
-      }
-
-      apiMessage = apiMessage.toLowerCase();
-
-      let friendly = "Something went wrong. Please try again.";
-
-      if (apiMessage.includes("overlap")) {
+      if (apiMessage.toLowerCase().includes("overlap")) {
         friendly =
-          "You already have a leave for these dates. Please choose different dates.";
+          "You already have a leave request for these dates.";
       } else if (
-        apiMessage.includes("already") ||
-        apiMessage.includes("exists")
+        apiMessage.toLowerCase().includes("already") ||
+        apiMessage.toLowerCase().includes("exists")
       ) {
         friendly =
-          "This leave request already exists. Please select different dates.";
-      } else if (apiMessage.includes("remaining")) {
-        friendly =
-          "You do not have enough remaining leave balance for these dates.";
-      } else if (error.response?.status === 500) {
-        friendly =
-          "This leave overlaps with an existing one. Please choose different dates.";
+          "This leave request already exists.";
+      } else if (apiMessage) {
+        friendly = apiMessage;
       }
 
       setAlert({
@@ -138,38 +106,53 @@ export default function LeaveForm({ onClose, onLeaveCreated }) {
   };
 
   return (
-    <Box
-      sx={{
-        position: "fixed",
-        inset: 0,
-        backgroundColor: "rgba(0,0,0,0.35)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        zIndex: 1400,
-      }}
-      onClick={onClose}
-    >
-      <Paper
-        elevation={6}
+    <>
+      {/* Overlay */}
+      <Box
         sx={{
-          width: { xs: "90%", sm: 420 },
-          p: { xs: 2, sm: 3 },
-          borderRadius: 3,
-          position: "relative",
+          position: "fixed",
+          inset: 0,
+          backgroundColor: "rgba(0,0,0,0.35)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          zIndex: 1400,
         }}
-        onClick={(e) => e.stopPropagation()}
+        onClick={onClose}
       >
-        <IconButton
-          onClick={onClose}
-          sx={{ position: "absolute", top: 10, right: 10, color: "error.main" }}
+        {/* Wrapper for Form + Calendar */}
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "flex-start",
+            gap: 3,
+          }}
+          onClick={(e) => e.stopPropagation()}
         >
-          <CloseIcon />
-        </IconButton>
+          {/* Leave Form */}
+          <Paper
+            elevation={6}
+            sx={{
+              width: 420,
+              p: 3,
+              borderRadius: 3,
+              position: "relative",
+            }}
+          >
+            <IconButton
+              onClick={onClose}
+              sx={{ position: "absolute", top: 10, right: 10 }}
+            >
+              <CloseIcon />
+            </IconButton>
 
-        <Typography variant="h5" align="center" sx={{ mb: 2 }}>
-          Apply Leave
-        </Typography>
+            <Typography
+              variant="h5"
+              align="center"
+              sx={{ mb: 2 }}
+            >
+              Apply Leave
+            </Typography>
 
         <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
           <TextField
@@ -180,7 +163,7 @@ export default function LeaveForm({ onClose, onLeaveCreated }) {
             onChange={handleChange}
             error={!!errors.start_date}
             helperText={errors.start_date}
-            slotProps={{ shrink: true }}
+            InputLabelProps={{ shrink: true }}
             fullWidth
             disabled={loading}
           />
@@ -198,44 +181,80 @@ export default function LeaveForm({ onClose, onLeaveCreated }) {
             disabled={loading}
           />
 
-          <TextField
-            label="Reason"
-            name="reason"
-            value={formData.reason}
-            onChange={handleChange}
-            error={!!errors.reason}
-            helperText={errors.reason}
-            multiline
-            rows={3}
-            fullWidth
-            disabled={loading}
-          />
+              <TextField
+                label="Reason"
+                name="reason"
+                value={formData.reason}
+                onChange={handleChange}
+                error={!!errors.reason}
+                helperText={errors.reason}
+                multiline
+                rows={3}
+                fullWidth
+                disabled={loading}
+              />
 
-          <Box display="flex" justifyContent="flex-end">
-            <Button
-              variant="contained"
-              sx={{ py: 1.25, px: 3, fontWeight: 600, minWidth: 140 }}
-              onClick={handleSubmit}
-              disabled={loading}
-            >
-              {loading ? (
-                <CircularProgress size={22} color="inherit" />
-              ) : (
-                "Apply Leave"
-              )}
-            </Button>
-          </Box>
+              <Box display="flex" justifyContent="flex-end">
+                <Button
+                  variant="contained"
+                  sx={{
+                    py: 1.25,
+                    px: 3,
+                    fontWeight: 600,
+                    minWidth: 140,
+                  }}
+                  onClick={handleSubmit}
+                  disabled={loading}
+                >
+                  {loading ? (
+                    <CircularProgress
+                      size={22}
+                      color="inherit"
+                    />
+                  ) : (
+                    "Apply Leave"
+                  )}
+                </Button>
+              </Box>
+            </Box>
+          </Paper>
+
+          {/* Calendar on Right */}
+          {calendarOpen && (
+            <Box sx={{ minWidth: 360 }}>
+              <Calendar
+                selectedDate={formData[activeField]}
+                year={new Date().getFullYear()}
+                holidays={[]}
+                disabled={false}
+                onDateSelect={(date) => {
+                  setFormData((prev) => ({
+                    ...prev,
+                    [activeField]: date,
+                  }));
+                  setCalendarOpen(false);
+                }}
+              />
+            </Box>
+          )}
         </Box>
-      </Paper>
+      </Box>
 
       <Snackbar
         open={alert.open}
         autoHideDuration={3000}
-        onClose={() => setAlert({ ...alert, open: false })}
-        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+        onClose={() =>
+          setAlert({ ...alert, open: false })
+        }
+        anchorOrigin={{
+          vertical: "top",
+          horizontal: "center",
+        }}
       >
-        <Alert severity={alert.severity}>{alert.message}</Alert>
+        <Alert severity={alert.severity}>
+          {alert.message}
+        </Alert>
       </Snackbar>
-    </Box>
+    </>
   );
 }
