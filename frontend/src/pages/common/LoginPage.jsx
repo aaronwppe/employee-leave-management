@@ -52,14 +52,25 @@ export default function LoginPage() {
   };
 
   const validateForm = () => {
-    if (!email || !password) {
+    if (!email) {
       setFieldErrors((prev) => {
         return {
-          prev,
+          ...prev,
           email: "Email is required",
+        };
+      });
+    }
+
+    if (!password) {
+      setFieldErrors((prev) => {
+        return {
+          ...prev,
           password: "Password is required",
         };
       });
+    }
+
+    if (!email || !password) {
       return false;
     }
 
@@ -67,7 +78,7 @@ export default function LoginPage() {
     if (!emailRegex.test(email)) {
       setFieldErrors((prev) => {
         return {
-          prev,
+          ...prev,
           email: "Invalid email address",
         };
       });
@@ -83,20 +94,19 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      await login(email, password);
-
-      setApiError("");
-      setSuccess(true);
-    } catch (err) {
-      if (err.response?.status === 401) {
+      const account = await login(email, password);
+      if (!account) {
         setApiError("Invalid credentials.");
       } else {
-        console.log(err);
-        setApiError("Unexpected error. Please try again later.");
+        setApiError("");
       }
+
+      setSuccess(!account);
+    } catch (err) {
+      console.log(err);
+      setApiError("Unexpected error. Please try again later.");
       setSuccess(false);
     }
-
     setOpenSnackbar(true);
     setLoading(false);
   };
@@ -112,7 +122,10 @@ export default function LoginPage() {
           justifyContent: "center",
         }}
       >
-        <Paper elevation={3} sx={{ p: 4, width: "100%", maxWidth: 350, borderRadius: 3 }}>
+        <Paper
+          elevation={3}
+          sx={{ p: 4, width: "100%", maxWidth: 350, borderRadius: 3 }}
+        >
           <Box sx={{ mb: 4, textAlign: "center" }}>
             <img src={logo} alt="Logo" style={{ width: 120, height: "auto" }} />
           </Box>
@@ -130,7 +143,7 @@ export default function LoginPage() {
             onChange={(e) => {
               setFieldErrors((prev) => {
                 return {
-                  prev,
+                  ...prev,
                   email: "",
                 };
               });
@@ -149,8 +162,8 @@ export default function LoginPage() {
             onChange={(e) => {
               setFieldErrors((prev) => {
                 return {
-                  prev,
-                  email: prev.email,
+                  ...prev,
+                  password: "",
                 };
               });
               setPassword(e.target.value);
@@ -181,9 +194,6 @@ export default function LoginPage() {
                 "Login"
               )}
             </Button>
-
-
-
           </Box>
         </Paper>
 
@@ -195,11 +205,11 @@ export default function LoginPage() {
         >
           <Alert
             onClose={() => setOpenSnackbar(false)}
-            severity={success ? "success" : "error"}
+            severity={success ? "error" : "success"}
             variant="filled"
             sx={{ width: "100%" }}
           >
-            {success ? "Login successful!" : apiError}
+            {success ? apiError : "Login successful!"}
           </Alert>
         </Snackbar>
       </Box>
