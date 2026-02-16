@@ -13,7 +13,7 @@ import {
   Alert,
 } from "@mui/material";
 import { Visibility, VisibilityOff, CheckCircle } from "@mui/icons-material";
-import logo from "../../assets/logo.png";
+import logo2 from "../../assets/logo2.png";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import axios from "axios";
 
@@ -110,7 +110,7 @@ function SetPasswordPage() {
           sx={{ p: 4, width: "100%", maxWidth: 350, borderRadius: 3 }}
         >
           <Box sx={{ mb: 4, textAlign: "center" }}>
-            <img src={logo} alt="Logo" style={{ width: 120, height: "auto" }} />
+            <img src={logo2} alt="Logo" style={{ width: 120, height: "auto" }} />
           </Box>
 
           <Typography variant="h5" align="center" gutterBottom>
