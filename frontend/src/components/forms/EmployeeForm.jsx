@@ -1,4 +1,5 @@
 import { useState } from "react";
+import CircularProgress from "@mui/material/CircularProgress";
 import {
   Box,
   TextField,
@@ -10,7 +11,7 @@ import {
   IconButton
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
-import {createEmployee} from "../../services/api/account.api";
+import { createEmployee } from "../../services/api/account.api";
 
 function EmployeeOnboard({ onEmployeeCreated, onClose }) {
   const [formData, setFormData] = useState({
@@ -27,6 +28,8 @@ function EmployeeOnboard({ onEmployeeCreated, onClose }) {
     message: "",
     severity: "success"
   });
+
+  const [loadingType, setLoadingType] = useState(null);
 
   const handleChange = (e) => {
     setFormData({
@@ -75,6 +78,8 @@ function EmployeeOnboard({ onEmployeeCreated, onClose }) {
 
     const isActive = type === "activate";
 
+    setLoadingType(type);
+
     try {
       const response = await createEmployee(formData, isActive);
 
@@ -88,7 +93,7 @@ function EmployeeOnboard({ onEmployeeCreated, onClose }) {
               : "Employee created successfully"
         });
 
-        resetForm();
+        // resetForm();
 
         if (onEmployeeCreated) {
           await onEmployeeCreated(); // refresh table
@@ -96,12 +101,14 @@ function EmployeeOnboard({ onEmployeeCreated, onClose }) {
 
         onClose();
       }
-    }catch (error) {
-        setAlert({
-          open: true,
-          severity: "error",
-          message: error?.message || "Error while creating employee"
-        });
+    } catch (error) {
+      setAlert({
+        open: true,
+        severity: "error",
+        message: error?.message || "Error while creating employee"
+      });
+    } finally {
+      setLoadingType(null);
     }
   };
 
@@ -201,16 +208,29 @@ function EmployeeOnboard({ onEmployeeCreated, onClose }) {
               variant="contained"
               color="success"
               onClick={() => handleSubmit("activate")}
+              disabled={loadingType !== null}
             >
-              Create & Activate
+              {loadingType === "activate" ? (
+                <CircularProgress size={20} color="inherit" />
+              ) : (
+                "Create & Activate"
+              )}
             </Button>
+
 
             <Button
               variant="contained"
               onClick={() => handleSubmit("create")}
+              disabled={loadingType !== null}
             >
-              Create
+              {loadingType === "create" ? (
+                <CircularProgress size={20} color="inherit" />
+              ) : (
+                "Create"
+              )}
             </Button>
+
+
           </Box>
         </Box>
       </Paper>
