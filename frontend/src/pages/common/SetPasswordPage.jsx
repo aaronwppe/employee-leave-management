@@ -75,16 +75,13 @@ function SetPasswordPage() {
           account_id: accountId,
           token: token,
           password: newPassword,
-        }
+        },
       );
 
       setError("");
       setOpenSnackbar(true);
 
-      // redirect after short delay
-      setTimeout(() => {
-        navigate("/login");
-      }, 1500);
+      navigate("/login");
     } catch (err) {
       console.log(err);
       setError("Invalid or expired link");
