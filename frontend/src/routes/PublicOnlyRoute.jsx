@@ -7,11 +7,10 @@ export default function PublicOnlyRoute({ children }) {
   if (loading) return <div>Authenticating...</div>;
 
   if (user) {
-    let page = "/";
     if (user.role === "ADMIN") {
-      page = "/admin";
+      return <Navigate to="/admin" replace />;
     }
-    return <Navigate to={page} replace />;
+    return <Navigate to="/employee" replace />;
   }
 
   return children;

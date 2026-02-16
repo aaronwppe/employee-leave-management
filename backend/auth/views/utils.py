@@ -5,7 +5,7 @@ from rest_framework_simplejwt.settings import api_settings
 
 
 _REFRESH_COOKIE_KEY = "refresh_token"
-_REFRESH_COOKIE_PATH = "/api/auth/"
+_REFRESH_COOKIE_PATH = "/"
 
 
 def get_refresh_token(request: Request) -> str | None:

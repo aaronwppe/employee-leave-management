@@ -35,7 +35,7 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (user) {
-      let page = "/";
+      let page = "/employee";
       if (user?.role === "ADMIN") {
         page = "/admin";
       }

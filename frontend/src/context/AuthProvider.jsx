@@ -10,36 +10,36 @@ export default function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const initAuth = async () => {
-      try {
-        const refreshResponse = await axios.post(
-          `${BASE_API_URL}/auth/refresh/`,
-          {},
-          { withCredentials: true },
-        );
-        tokenService.setAccessToken(refreshResponse.data.data.access);
+  const initAuth = async () => {
+    try {
+      const refreshResponse = await axios.post(
+        `${BASE_API_URL}/auth/refresh/`,
+        {},
+        { withCredentials: true },
+      );
+      tokenService.setAccessToken(refreshResponse.data.data.access);
 
-        const accountId = localStorage.getItem("accountId");
-        const accountResponse = await axios.get(
-          `${BASE_API_URL}/account/${accountId}/`,
-          {},
-          {
-            headers: {
-              Authorization: `Bearer ${tokenService.getAccessToken()}`,
-            },
+      const accountId = localStorage.getItem("accountId");
+      const accountResponse = await axios.get(
+        `${BASE_API_URL}/account/${accountId}/`,
+        {
+          headers: {
+            Authorization: `Bearer ${tokenService.getAccessToken()}`,
           },
-        );
+        },
+      );
 
-        setUser(accountResponse.data.data);
-      } catch {
-        tokenService.clearAccessToken();
-      } finally {
-        setLoading(false);
-      }
-    };
+      setUser(accountResponse.data.data);
+    } catch {
+      tokenService.clearAccessToken();
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    initAuth();
-  }, []);
+  initAuth();
+}, []);
+
 
   const login = async (email, password) => {
     let account = null;
@@ -59,6 +59,7 @@ export default function AuthProvider({ children }) {
       setUser(account);
     } catch (err) {
       console.log(err);
+      console.log(err?.response);
       tokenService.clearAccessToken();
       setUser(null);
     }

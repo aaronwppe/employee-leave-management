@@ -15,6 +15,7 @@ class HolidayCreateSerializer(serializers.ModelSerializer):
         ]
 
     def validate_date(self, value):
+        
         current_year = timezone.now().year
         if value.year <= current_year:
             raise serializers.ValidationError(
