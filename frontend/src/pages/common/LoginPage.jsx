@@ -13,7 +13,7 @@ import {
   Alert,
 } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
-import logo from "../../assets/logo.png";
+import logo2 from "../../assets/logo2.png";
 import useAuth from "../../context/useAuth";
 import { useLocation, useNavigate } from "react-router-dom";
 
@@ -127,7 +127,7 @@ export default function LoginPage() {
           sx={{ p: 4, width: "100%", maxWidth: 350, borderRadius: 3 }}
         >
           <Box sx={{ mb: 4, textAlign: "center" }}>
-            <img src={logo} alt="Logo" style={{ width: 120, height: "auto" }} />
+            <img src={logo2} alt="Logo" style={{ width: 120, height: "auto" }} />
           </Box>
 
           <Typography variant="h5" align="center" gutterBottom>
@@ -184,9 +184,24 @@ export default function LoginPage() {
           <Box sx={{ mt: 3, display: "flex", justifyContent: "flex-end" }}>
             <Button
               variant="contained"
-              sx={{ px: 4, py: 1, minWidth: 120 }}
               onClick={handleLogin}
               disabled={loading}
+              sx={{
+                px: 4,
+                py: 1,
+                minWidth: 120,
+                backgroundColor: "#081250",
+                color: "#fff",
+
+                "&:hover": {
+                  backgroundColor: "#0a1a70",
+                },
+
+                "&.Mui-disabled": {
+                  backgroundColor: "#b0b0b0",
+                  color: "#fff",
+                },
+              }}
             >
               {loading ? (
                 <CircularProgress size={20} color="inherit" />
@@ -194,6 +209,7 @@ export default function LoginPage() {
                 "Login"
               )}
             </Button>
+
           </Box>
         </Paper>
 
