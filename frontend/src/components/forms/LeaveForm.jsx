@@ -37,6 +37,7 @@ export default function LeaveForm({ onClose, onLeaveCreated }) {
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+
     if (errors[e.target.name]) {
       setErrors({ ...errors, [e.target.name]: undefined });
     }
@@ -44,11 +45,17 @@ export default function LeaveForm({ onClose, onLeaveCreated }) {
 
   const validateForm = () => {
     let newErrors = {};
+    const today = new Date().toISOString().split("T")[0];
 
-    if (!formData.start_date)
-      newErrors.start_date = "Start date is required";
-    if (!formData.end_date)
-      newErrors.end_date = "End date is required";
+    if (!formData.start_date) {
+      newErrors.start_date = "Please select a start date.";
+    } else if (formData.start_date < today) {
+      newErrors.start_date = "Start date cannot be in the past.";
+    }
+
+    if (!formData.end_date) {
+      newErrors.end_date = "Please select an end date.";
+    }
 
     if (
       formData.start_date &&
@@ -56,22 +63,43 @@ export default function LeaveForm({ onClose, onLeaveCreated }) {
       formData.start_date > formData.end_date
     ) {
       newErrors.end_date =
-        "End date cannot be before start date";
+        "End date must be the same as or after the start date.";
     }
 
-    if (!formData.reason.trim())
-      newErrors.reason = "Reason is required";
+    if (!formData.reason.trim()) {
+      newErrors.reason = "Please enter a reason for your leave.";
+    } else if (formData.reason.trim().length < 3) {
+      newErrors.reason = "Reason must be at least 3 characters.";
+    }
 
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+
+    if (Object.keys(newErrors).length > 0) {
+      setAlert({
+        open: true,
+        severity: "error",
+        message: "Please fix the highlighted fields.",
+      });
+      return false;
+    }
+
+    return true;
   };
 
   const handleSubmit = async () => {
     if (!validateForm()) return;
+
     setLoading(true);
 
     try {
       await addLeave(formData);
+
+      setAlert({
+        open: true,
+        severity: "success",
+        message: "Leave applied successfully.",
+      });
+
       if (onLeaveCreated) await onLeaveCreated();
       onClose();
     } catch (error) {
@@ -79,20 +107,30 @@ export default function LeaveForm({ onClose, onLeaveCreated }) {
 
       const apiMessage =
         error.response?.data?.detail ||
-        JSON.stringify(error.response?.data?.errors) ||
+        error.response?.data?.message ||
+        JSON.stringify(error.response?.data) ||
         "";
 
-      let friendly = "Failed to apply leave.";
+      const msg = apiMessage.toLowerCase();
 
-      if (apiMessage.toLowerCase().includes("overlap")) {
-        friendly =
-          "You already have a leave request for these dates.";
-      } else if (
-        apiMessage.toLowerCase().includes("already") ||
-        apiMessage.toLowerCase().includes("exists")
+      let friendly = "Unable to apply leave. Please try again.";
+
+      if (
+        msg.includes("overlap") ||
+        msg.includes("overlapping") ||
+        msg.includes("conflict")
       ) {
         friendly =
-          "This leave request already exists.";
+          "You already have a leave scheduled for these dates. Please choose different dates.";
+      } else if (
+        msg.includes("already") ||
+        msg.includes("exists")
+      ) {
+        friendly =
+          "A leave already exists for the selected dates.";
+      } else if (msg.includes("remaining")) {
+        friendly =
+          "You do not have enough leave balance.";
       } else if (apiMessage) {
         friendly = apiMessage;
       }
@@ -120,16 +158,12 @@ export default function LeaveForm({ onClose, onLeaveCreated }) {
         }}
         onClick={onClose}
       >
-        {/* Wrapper for Form + Calendar */}
+        {/* Wrapper */}
         <Box
-          sx={{
-            display: "flex",
-            alignItems: "flex-start",
-            gap: 3,
-          }}
+          sx={{ display: "flex", alignItems: "flex-start", gap: 3 }}
           onClick={(e) => e.stopPropagation()}
         >
-          {/* Leave Form */}
+          {/* Form */}
           <Paper
             elevation={6}
             sx={{
@@ -151,7 +185,6 @@ export default function LeaveForm({ onClose, onLeaveCreated }) {
             </Typography>
 
             <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-
               {/* Start Date */}
               <TextField
                 label="Start Date"
@@ -206,6 +239,7 @@ export default function LeaveForm({ onClose, onLeaveCreated }) {
                 }}
               />
 
+              {/* Reason */}
               <TextField
                 label="Reason"
                 name="reason"
@@ -222,12 +256,7 @@ export default function LeaveForm({ onClose, onLeaveCreated }) {
               <Box display="flex" justifyContent="flex-end">
                 <Button
                   variant="contained"
-                  sx={{
-                    py: 1.25,
-                    px: 3,
-                    fontWeight: 600,
-                    minWidth: 140,
-                  }}
+                  sx={{ py: 1.25, px: 3, fontWeight: 600, minWidth: 140 }}
                   onClick={handleSubmit}
                   disabled={loading}
                 >
@@ -241,7 +270,7 @@ export default function LeaveForm({ onClose, onLeaveCreated }) {
             </Box>
           </Paper>
 
-          {/* Calendar on Right */}
+          {/* Calendar */}
           {calendarOpen && (
             <Box sx={{ width: 380 }}>
               <Calendar
@@ -262,13 +291,14 @@ export default function LeaveForm({ onClose, onLeaveCreated }) {
         </Box>
       </Box>
 
+      {/* Popup message */}
       <Snackbar
         open={alert.open}
         autoHideDuration={3000}
         onClose={() => setAlert({ ...alert, open: false })}
         anchorOrigin={{ vertical: "top", horizontal: "center" }}
       >
-        <Alert severity={alert.severity}>
+        <Alert severity={alert.severity} variant="filled">
           {alert.message}
         </Alert>
       </Snackbar>

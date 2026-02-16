@@ -29,7 +29,7 @@ function Navbar({ role = "EMPLOYEE" }) {
         py: 2,
       }}
     >
-      <Container sx={{ maxWidth: "80%", minWidth: "80%" }}>
+      <Container maxWidth={"100%"}>
         <AppBar
           position="static"
           sx={{
