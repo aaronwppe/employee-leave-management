@@ -1,81 +1,74 @@
-from django.shortcuts import render
-
-# Create your views here.
-from django.utils import timezone
-from rest_framework import viewsets
+from rest_framework import viewsets, mixins
 from rest_framework.response import Response
-from account.models import Account
-from rest_framework.status import (
-    HTTP_200_OK,
-    HTTP_201_CREATED,
-    HTTP_400_BAD_REQUEST,
-    HTTP_403_FORBIDDEN,
-    HTTP_404_NOT_FOUND,
-    HTTP_409_CONFLICT,
-)
+from rest_framework.status import HTTP_201_CREATED
+from django.db.models import Q
 from leave.models import Leave
-from leave import serializers
 from server.utils.responses import ApiResponseMixin
+from account.models import AccountRole
+from leave.permissions import LeavePermission
+from leave import serializers
 
 
-class LeaveViewSet(ApiResponseMixin, viewsets.ModelViewSet):
+class LeaveViewSet(
+    ApiResponseMixin,
+    mixins.ListModelMixin,
+    mixins.CreateModelMixin,
+    mixins.DestroyModelMixin,
+    viewsets.GenericViewSet,
+):
     http_method_names = ["get", "post", "delete"]
+    queryset = Leave.objects.filter(is_deleted=False)
+    pagination_class = None
+    permission_classes = [LeavePermission]
 
     def get_queryset(self):
-        request = self.request
+        queryset = super().get_queryset()
 
-        system_account = Account.objects.filter(
-            email="system0@gmail.com"
-        ).first()
+        if self.action != "list":
+            return queryset
 
-        if not system_account:
-            return Leave.objects.none()
+        if self.request.user.role == AccountRole.EMPLOYEE:
+            queryset = queryset.filter(account=self.request.user)
 
-        account_id = request.query_params.get(
-            "account_id", system_account.id
+        serializer = serializers.LeaveListRequestSerializer(
+            data=self.request.query_params,
+            context={"request": self.request},
         )
+        serializer.is_valid(raise_exception=True)
+        account = serializer.validated_data["account_id"]
+        year = serializer.validated_data["year"]
 
-        year = request.query_params.get(
-            "year", timezone.now().year
+        return queryset.filter(
+            Q(account__id=account.id)
+            & Q(Q(start_date__year=year) | Q(end_date__year=year))
         )
-
-        queryset = Leave.objects.filter(
-            account_id=account_id,
-            is_deleted=False,
-            created_on__year=year,
-        )
-
-        return queryset.order_by("-created_on")
-
 
     def get_serializer_class(self):
         if self.action == "list":
             return serializers.LeaveListSerializer
+
         if self.action == "create":
-            return serializers.LeaveCreateSerializer
-        return serializers.LeaveListSerializer
+            if self.request.user.role == AccountRole.ADMIN:
+                return serializers.AdminLeaveCreateSerializer
 
-    def paginate_queryset(self, queryset):
-        results = super().paginate_queryset(queryset)
+            if self.request.user.role == AccountRole.EMPLOYEE:
+                return serializers.EmployeeLeaveCreateSerializer
 
-        if results is not None:
-            self.paginator.total_count_key = "total_leaves"
-            self.paginator.results_key = "leaves"
-
-        return results
+        raise NotImplementedError(
+            f"Serializer for action '{self.action}' and role '{self.request.user.role}' has not been implemented."
+        )
 
     def list(self, request, *args, **kwargs):
-        queryset = self.filter_queryset(self.get_queryset())
-
-        page = self.paginate_queryset(queryset)
-        serializer = self.get_serializer(page, many=True)
-
-        return self.get_paginated_response(serializer.data)
+        response = super().list(request, *args, **kwargs)
+        return Response(
+            data={
+                "leaves": response.data,
+            },
+            status=response.status_code,
+        )
 
     def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(
-            data=request.data, context={"request": request}
-        )
+        serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
         instance = serializer.save()
@@ -86,27 +79,5 @@ class LeaveViewSet(ApiResponseMixin, viewsets.ModelViewSet):
             status=HTTP_201_CREATED,
         )
 
-    def destroy(self, request, pk=None):
-        try:
-            leave = Leave.objects.get(pk=pk, is_deleted=False)
-        except Leave.DoesNotExist:
-            return Response(
-                data={"error": "Leave id is invalid"},
-                status=HTTP_404_NOT_FOUND,
-            )
-
-        if leave.start_date <= timezone.now().date():
-            return Response(
-                data={"error": "Cannot delete this leave."},
-                status=HTTP_409_CONFLICT,
-            )
-
-        leave.delete()
-
-        leave.account.remaining_leaves += leave.number_of_leaves
-        leave.account.save(update_fields=["remaining_leaves"])
-
-        return Response(
-            data={},
-            status=HTTP_200_OK,
-        )
+    def perform_destroy(self, instance):
+        instance.soft_delete(self.request.user)

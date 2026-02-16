@@ -1,23 +1,62 @@
-import "./App.css";
-import { BrowserRouter, Routes, Route } from 'react-router';
+import { Routes, Route } from "react-router-dom";
+import ProtectedRoute from "./routes/ProtectedRoute";
+import PublicOnlyRoute from "./routes/PublicOnlyRoute";
 import AdminLayout from "./layouts/AdminLayout";
 import EmployeeLayout from "./layouts/EmployeeLayout";
-import SetPassword from "./pages/SetPassword";
-import Login from "./pages/Login"
 import Planner from "./pages/admin/Planner";
 import Calendar from "./components/common/Calendar";
+import LoginPage from "./pages/common/LoginPage";
+import useAuth from "./context/useAuth";
+import { useEffect } from "react";
+import { setAuthContext } from "./services/api/client";
+import LeavePage from "./pages/employee/LeavePage";
+import AccountsPage from "./pages/admin/AccountsPage";
+import SetPasswordPage from "./pages/common/SetPasswordPage";
+import { Navigate } from "react-router-dom";
 
-function App() {
+export default function App() {
+  const auth = useAuth();
+  useEffect(() => {
+    setAuthContext(auth);
+  }, [auth]);
+
   return (
-      <Routes>
-        <Route path="/" element={<AdminLayout />} />
-        <Route path="/employee" element={<EmployeeLayout />} />
-        <Route path="/set-password" element={<SetPassword />} />
-        <Route path="/login" element={<Login/>} />
-        <Route path="/planner" element={<Planner/>} />
-        <Route path="/calendar" element={<Calendar/>} />
-      </Routes>
+    <Routes>
+      <Route
+        path="/login"
+        element={
+          <PublicOnlyRoute>
+            <LoginPage />
+          </PublicOnlyRoute>
+        }
+      />
+
+      <Route
+        path="/admin"
+        element={
+          <ProtectedRoute role="ADMIN">
+            <AdminLayout />
+          </ProtectedRoute>
+        }
+      >
+        <Route index element={<AccountsPage />} />
+        <Route path="/admin/leaves" element={<LeavePage />} />
+        <Route path="/admin/planner" element={<Planner/>} />
+        <Route path="/admin/calendar" element={<Calendar/>} />
+      </Route>
+
+      <Route
+        path="/employee"
+        element={
+          <ProtectedRoute>
+            <EmployeeLayout />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route path="/set-password" element={<SetPasswordPage />} />
+
+      <Route path="*" element={<Navigate to="/login" replace />} />
+    </Routes>
   );
 }
-
-export default App;

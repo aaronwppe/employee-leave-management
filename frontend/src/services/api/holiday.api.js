@@ -1,4 +1,4 @@
-import AxiosInstance from "./Axios";
+import api from "./client";
 
 // GET /api/holiday?year=YYYY
 export const getHolidays = async (year) => {

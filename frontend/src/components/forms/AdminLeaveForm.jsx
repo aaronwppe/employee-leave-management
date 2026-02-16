@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Box,
   TextField,
@@ -11,8 +11,10 @@ import {
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 
-function LeaveForm({ onClose }) {
+function AdminLeaveForm({ employee, onClose }) {
   const [formData, setFormData] = useState({
+    first_name: "",
+    last_name: "",
     start_date: "",
     end_date: "",
     reason: ""
@@ -25,6 +27,16 @@ function LeaveForm({ onClose }) {
     severity: "success"
   });
 
+  useEffect(() => {
+    if (employee) {
+      setFormData((prev) => ({
+        ...prev,
+        first_name: employee.first_name,
+        last_name: employee.last_name
+      }));
+    }
+  }, [employee]);
+
   const handleChange = (e) => {
     setFormData({
       ...formData,
@@ -35,9 +47,11 @@ function LeaveForm({ onClose }) {
   const validateForm = () => {
     let newErrors = {};
 
-    if (!formData.start_date) newErrors.start_date = "Start date is required";
+    if (!formData.start_date)
+      newErrors.start_date = "Start date is required";
 
-    if (!formData.end_date) newErrors.end_date = "End date is required";
+    if (!formData.end_date)
+      newErrors.end_date = "End date is required";
 
     if (
       formData.start_date &&
@@ -47,23 +61,17 @@ function LeaveForm({ onClose }) {
       newErrors.end_date = "End date cannot be before start date";
     }
 
-    if (!formData.reason.trim()) newErrors.reason = "Reason is required";
+    if (!formData.reason.trim())
+      newErrors.reason = "Reason is required";
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const resetForm = () => {
-    setFormData({
-      start_date: "",
-      end_date: "",
-      reason: ""
-    });
-    setErrors({});
-  };
-
   const handleSubmit = () => {
     if (!validateForm()) return;
+
+    console.log("Admin applying leave for:", employee.id);
 
     setAlert({
       open: true,
@@ -71,7 +79,6 @@ function LeaveForm({ onClose }) {
       message: "Leave applied successfully!"
     });
 
-    resetForm();
     if (onClose) onClose();
   };
 
@@ -90,13 +97,12 @@ function LeaveForm({ onClose }) {
       <Paper
         elevation={6}
         sx={{
-          width: { xs: "90%", sm: 420 },
-          p: { xs: 2, sm: 3 },
+          width: { xs: "90%", sm: 450 },
+          p: 3,
           borderRadius: 3,
           position: "relative"
         }}
       >
-        {/* Close icon */}
         <IconButton
           onClick={onClose}
           sx={{
@@ -113,14 +119,24 @@ function LeaveForm({ onClose }) {
           Apply Leave
         </Typography>
 
-        <Box
-          sx={{
-            mt: 2,
-            display: "flex",
-            flexDirection: "column",
-            gap: 2
-          }}
-        >
+        <Box display="flex" flexDirection="column" gap={2}>
+
+          <TextField
+            label="First Name"
+            name="first_name"
+            value={formData.first_name}
+            disabled
+            fullWidth
+          />
+
+          <TextField
+            label="Last Name"
+            name="last_name"
+            value={formData.last_name}
+            disabled
+            fullWidth
+          />
+
           <TextField
             type="date"
             name="start_date"
@@ -156,7 +172,7 @@ function LeaveForm({ onClose }) {
           <Box display="flex" justifyContent="flex-end">
             <Button
               variant="contained"
-              sx={{ mt: 1, py: 1.25, px: 3, fontWeight: 600 }}
+              sx={{ px: 3, fontWeight: 600 }}
               onClick={handleSubmit}
             >
               Apply Leave
@@ -171,10 +187,12 @@ function LeaveForm({ onClose }) {
         onClose={() => setAlert({ ...alert, open: false })}
         anchorOrigin={{ vertical: "top", horizontal: "center" }}
       >
-        <Alert severity={alert.severity}>{alert.message}</Alert>
+        <Alert severity={alert.severity}>
+          {alert.message}
+        </Alert>
       </Snackbar>
     </Box>
   );
 }
 
-export default LeaveForm;
+export default AdminLeaveForm;

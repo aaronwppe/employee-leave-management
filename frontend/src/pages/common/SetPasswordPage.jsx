@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import { useState } from "react";
+import CircularProgress from "@mui/material/CircularProgress";
 import {
   Box,
   Button,
@@ -9,20 +10,28 @@ import {
   IconButton,
   InputAdornment,
   Snackbar,
-  Alert
+  Alert,
 } from "@mui/material";
 import { Visibility, VisibilityOff, CheckCircle } from "@mui/icons-material";
-import logo from "../public/logo.png";
+import logo from "../../assets/logo.png";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import axios from "axios";
 
-function SetPassword() {
+function SetPasswordPage() {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [openSnackbar, setOpenSnackbar] = useState(false);
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+
+  const accountId = searchParams.get("account_id");
+  const token = searchParams.get("token");
 
   const handleTogglePassword = () => {
-    setShowPassword(!showPassword);
+    setShowPassword((prev) => !prev);
   };
 
   // Password conditions
@@ -31,14 +40,14 @@ function SetPassword() {
     uppercase: /[A-Z]/.test(newPassword),
     lowercase: /[a-z]/.test(newPassword),
     number: /[0-9]/.test(newPassword),
-    special: /[@$!%*?&]/.test(newPassword)
+    special: /[@$!%*?&]/.test(newPassword),
   };
 
-  const validatePassword = (password) => {
+  const validatePassword = () => {
     return Object.values(conditions).every(Boolean);
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!newPassword || !confirmPassword) {
       setError("Both fields are required");
       setOpenSnackbar(true);
@@ -57,33 +66,42 @@ function SetPassword() {
       return;
     }
 
-    setError("");
+    try {
+      await axios.post(
+        `${import.meta.env.VITE_BASE_API_URL}/auth/password-reset/confirm/`,
+        {
+          account_id: accountId,
+          token: token,
+          password: newPassword,
+        },
+      );
+      setError("");
+      navigate("/login");
+    } catch (err) {
+      console.log(err);
+      setError("Invalid link");
+    } finally {
+      setLoading(false); 
+    }
     setOpenSnackbar(true);
   };
 
   return (
-    <Container maxWidth="sm">
+    <Container maxWidth="xm">
       <Box
         sx={{
           minHeight: "100vh",
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
-          justifyContent: "center"
+          justifyContent: "center",
         }}
       >
-        {/* Logo */}
-        
+        <Paper elevation={3} sx={{ p: 4, width: "100%", maxWidth: 350, borderRadius: 3 }}>
+          <Box sx={{ mb: 4, textAlign: "center" }}>
+            <img src={logo} alt="Logo" style={{ width: 120, height: "auto" }} />
+          </Box>
 
-        {/* Paper Form */}
-        <Paper elevation={3} sx={{ p: 4, width: "100%", borderRadius: 3 }}>
-            <Box sx={{ mb: 4, textAlign: "center" }}>
-          <img
-            src={logo}
-            alt="Logo"
-            style={{ width: 120, height: "auto" }}
-          />
-        </Box>
           <Typography variant="h5" align="center" gutterBottom>
             Set New Password
           </Typography>
@@ -96,14 +114,14 @@ function SetPassword() {
             value={newPassword}
             onChange={(e) => setNewPassword(e.target.value)}
             error={Boolean(error)}
-            InputProps={{
+            slotProps={{
               endAdornment: (
                 <InputAdornment position="end">
                   <IconButton onClick={handleTogglePassword} edge="end">
                     {showPassword ? <VisibilityOff /> : <Visibility />}
                   </IconButton>
                 </InputAdornment>
-              )
+              ),
             }}
           />
 
@@ -138,7 +156,7 @@ function SetPassword() {
                     alignItems: "center",
                     color: valid ? "green" : "gray",
                     fontSize: "0.875rem",
-                    mb: 0.5
+                    mb: 0.5,
                   }}
                 >
                   <CheckCircle fontSize="small" />
@@ -156,21 +174,31 @@ function SetPassword() {
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
             error={Boolean(error)}
-            InputProps={{
+            slotProps={{
               endAdornment: (
                 <InputAdornment position="end">
                   <IconButton onClick={handleTogglePassword} edge="end">
                     {showPassword ? <VisibilityOff /> : <Visibility />}
                   </IconButton>
                 </InputAdornment>
-              )
+              ),
             }}
           />
 
           <Box sx={{ mt: 3, display: "flex", justifyContent: "flex-end" }}>
-            <Button variant="contained" sx={{ px: 4, py: 1 }} onClick={handleSubmit}>
-              Confirm
+            <Button
+              variant="contained"
+              sx={{ px: 4, py: 1, minWidth: 120 }}
+              onClick={handleSubmit}
+              disabled={loading}
+            >
+              {loading ? (
+                <CircularProgress size={20} color="inherit" />
+              ) : (
+                "Confirm"
+              )}
             </Button>
+
           </Box>
         </Paper>
 
@@ -195,4 +223,4 @@ function SetPassword() {
   );
 }
 
-export default SetPassword;
+export default SetPasswordPage;
