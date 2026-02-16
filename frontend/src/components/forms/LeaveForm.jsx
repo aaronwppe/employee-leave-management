@@ -37,22 +37,45 @@ export default function LeaveForm({ onClose, onLeaveCreated }) {
 
   const validateForm = () => {
     let newErrors = {};
+    const today = new Date().toISOString().split("T")[0];
 
-    if (!formData.start_date) newErrors.start_date = "Start date is required";
-    if (!formData.end_date) newErrors.end_date = "End date is required";
+    if (!formData.start_date) {
+      newErrors.start_date = "Please select a start date.";
+    } else if (formData.start_date < today) {
+      newErrors.start_date = "Start date cannot be in the past.";
+    }
+
+    if (!formData.end_date) {
+      newErrors.end_date = "Please select an end date.";
+    }
 
     if (
       formData.start_date &&
       formData.end_date &&
       formData.start_date > formData.end_date
     ) {
-      newErrors.end_date = "End date cannot be before start date";
+      newErrors.end_date =
+        "End date must be the same as or after the start date.";
     }
 
-    if (!formData.reason.trim()) newErrors.reason = "Reason is required";
+    if (!formData.reason.trim()) {
+      newErrors.reason = "Please enter a reason for your leave.";
+    } else if (formData.reason.trim().length < 3) {
+      newErrors.reason = "Reason should be at least 3 characters.";
+    }
 
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+
+    if (Object.keys(newErrors).length > 0) {
+      setAlert({
+        open: true,
+        severity: "error",
+        message: "Please correct the highlighted fields.",
+      });
+      return false;
+    }
+
+    return true;
   };
 
   const handleSubmit = async () => {
@@ -66,24 +89,44 @@ export default function LeaveForm({ onClose, onLeaveCreated }) {
     } catch (error) {
       setLoading(false);
 
-      const apiMessage =
-        error.response?.data?.detail ||
-        JSON.stringify(error.response?.data?.errors) ||
-        "";
+      // Safely extract backend message
+      let apiMessage = "";
 
-      let friendly = "Failed to apply leave.";
+      if (error.response?.data) {
+        const data = error.response.data;
 
-      if (apiMessage.toLowerCase().includes("overlap")) {
+        if (typeof data === "string") {
+          apiMessage = data;
+        } else if (data.detail) {
+          apiMessage = data.detail;
+        } else if (data.message) {
+          apiMessage = data.message;
+        } else if (data.errors) {
+          apiMessage = JSON.stringify(data.errors);
+        } else {
+          apiMessage = JSON.stringify(data);
+        }
+      }
+
+      apiMessage = apiMessage.toLowerCase();
+
+      let friendly = "Something went wrong. Please try again.";
+
+      if (apiMessage.includes("overlap")) {
         friendly =
-          "You already have a leave request for these dates. Please choose different dates.";
+          "You already have a leave for these dates. Please choose different dates.";
       } else if (
-        apiMessage.toLowerCase().includes("already") ||
-        apiMessage.toLowerCase().includes("exists")
+        apiMessage.includes("already") ||
+        apiMessage.includes("exists")
       ) {
         friendly =
           "This leave request already exists. Please select different dates.";
-      } else if (apiMessage) {
-        friendly = apiMessage;
+      } else if (apiMessage.includes("remaining")) {
+        friendly =
+          "You do not have enough remaining leave balance for these dates.";
+      } else if (error.response?.status === 500) {
+        friendly =
+          "This leave overlaps with an existing one. Please choose different dates.";
       }
 
       setAlert({

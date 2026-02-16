@@ -1,4 +1,7 @@
 import React, { useMemo, useState } from "react";
+import Tooltip from "@mui/material/Tooltip";
+import TextField from "@mui/material/TextField";
+import MenuItem from "@mui/material/MenuItem";
 import dayjs from "dayjs";
 import {
   Table,
@@ -23,27 +26,34 @@ import {
 
 import CalendarViewMonthIcon from "@mui/icons-material/CalendarViewMonth";
 import DeleteIcon from "@mui/icons-material/Delete";
-import '../../App.css'
+import "../../App.css";
 
-function LeaveHistoryTable({
-  leaves = [],
-  onDelete,
-  loading,
-  year,
-}) {
-  // Pagination
+function LeaveHistoryTable({ leaves = [], onDelete, loading, year }) {
   const [page, setPage] = useState(0);
   const rowsPerPage = 5;
 
-  // Delete dialog
   const [openDelete, setOpenDelete] = useState(false);
   const [leaveId, setLeaveId] = useState(null);
 
-  // Sort leaves by start date
+  const [search, setSearch] = useState("");
+
+  // Filter leaves by reason
+  const filtered = useMemo(() => {
+    return leaves.filter((leave) =>
+      leave.reason?.toLowerCase().includes(search.toLowerCase())
+    );
+  }, [leaves, search]);
+
+  // Sort leaves
   const sorted = useMemo(() => {
-    return [...leaves].sort(
+    return [...filtered].sort(
       (a, b) => dayjs(a.start_date).valueOf() - dayjs(b.start_date).valueOf()
     );
+  }, [filtered]);
+
+  // Total leave days
+  const totalLeaveDays = useMemo(() => {
+    return leaves.reduce((sum, leave) => sum + (leave.total_days || 0), 0);
   }, [leaves]);
 
   const handleDeleteOpen = (id) => {
@@ -57,135 +67,166 @@ function LeaveHistoryTable({
   };
 
   const handleDeleteConfirm = () => {
-    if (leaveId) {
-      onDelete(leaveId);
-    }
+    if (leaveId) onDelete(leaveId);
     handleDeleteClose();
   };
 
+  // Loading state
   if (loading) {
     return (
-      <Box mt={2} textAlign="center">
-        <CircularProgress size={24} />
+      <Box mt={4} display="flex" justifyContent="center">
+        <CircularProgress />
       </Box>
     );
   }
 
+  // Empty state
   if (!leaves.length) {
     return (
       <Typography
         variant="body2"
         color="text.secondary"
-        sx={{ mt: 2, textAlign: "center" }}
+        sx={{ mt: 4, textAlign: "center" }}
       >
-        No leaves applied for {year}.
+        No leaves taken in {year}.
       </Typography>
     );
   }
 
   return (
     <Box mt={4}>
-      {/* Header */}
       <Box
         className={"TopBar"}
-        sx={{
-          display: "flex",
-          alignItems: "center",
-          mb: 1.5,
-        }}
+        sx={{ display: "flex", alignItems: "center", mb: 2 }}
       >
-        <CalendarViewMonthIcon />
-        <Typography
-          sx={{ marginLeft: "15px", fontWeight: "bold" }}
-          variant="subtitle2"
-        >
+        <CalendarViewMonthIcon sx={{ fontSize: 28 }} />
+        <Typography sx={{ ml: 2, fontWeight: "bold", fontSize: "1.3rem" }}>
           Leave History
         </Typography>
       </Box>
 
-      <Typography
-        variant="subtitle2"
+      {/* Top control bar */}
+      <Box
         sx={{
-          mb: 1,
-          fontWeight: 600,
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          mb: 2,
+          gap: 2,
+          flexWrap: "wrap",
         }}
       >
-        Total leaves: {leaves.length}
-      </Typography>
+        {/* Left: total leave */}
+        <Typography
+          sx={{
+            fontWeight: 700,
+            fontSize: "1.15rem",
+          }}
+        >
+          Total leave days: {totalLeaveDays}
+        </Typography>
 
-      {/* Table */}
+        {/* Right side controls */}
+        <Box
+          sx={{
+            display: "flex",
+            gap: 2,
+            alignItems: "center",
+          }}
+        >
+          <TextField
+            size="small"
+            placeholder="Search by reason..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            sx={{ width: 220 }}
+          />
+
+          <TextField
+            select
+            size="small"
+            label="Year"
+            value={year}
+            sx={{ width: 120 }}
+            disabled
+          >
+            <MenuItem value={year}>{year}</MenuItem>
+          </TextField>
+        </Box>
+      </Box>
+
       <TableContainer
         component={Paper}
-        sx={{
-          borderRadius: 2,
-          boxShadow: 1,
-        }}
+        sx={{ borderRadius: 2, boxShadow: 1 }}
       >
-        <Table size="small">
+        <Table>
           <TableHead>
-            <TableRow
-              sx={{
-                backgroundColor: "rgba(0,0,0,0.04)",
-              }}
-            >
-              <TableCell>Start Date</TableCell>
-              <TableCell>End Date</TableCell>
-              <TableCell>Days</TableCell>
-              <TableCell>Reason</TableCell>
-              <TableCell width={50}></TableCell>
+            <TableRow sx={{ backgroundColor: "rgba(0,0,0,0.04)" }}>
+              <TableCell sx={{ fontWeight: 700, fontSize: "1rem" }}>
+                Start Date
+              </TableCell>
+              <TableCell sx={{ fontWeight: 700, fontSize: "1rem" }}>
+                End Date
+              </TableCell>
+              <TableCell sx={{ fontWeight: 700, fontSize: "1rem" }}>
+                Days
+              </TableCell>
+              <TableCell sx={{ fontWeight: 700, fontSize: "1rem" }}>
+                Reason
+              </TableCell>
+              <TableCell width={60}></TableCell>
             </TableRow>
           </TableHead>
 
           <TableBody>
             {sorted
               .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-              .map((leave) => (
-                <TableRow
-                  key={leave.id}
-                  hover
-                  sx={{
-                    "&:hover": {
-                      backgroundColor: "rgba(0,0,0,0.03)",
-                    },
-                  }}
-                >
-                  <TableCell>
-                    {dayjs(leave.start_date).format("DD MMM YYYY")}
-                  </TableCell>
+              .map((leave) => {
+                const isPastLeave =
+                  dayjs(leave.start_date).isBefore(dayjs(), "day") ||
+                  dayjs(leave.start_date).isSame(dayjs(), "day");
 
-                  <TableCell>
-                    {dayjs(leave.end_date).format("DD MMM YYYY")}
-                  </TableCell>
-
-                  <TableCell>{leave.total_days}</TableCell>
-
-                  <TableCell>{leave.reason}</TableCell>
-
-                  <TableCell>
-                    <IconButton
-                      onClick={() => handleDeleteOpen(leave.id)}
-                      size="small"
-                    >
-                      <DeleteIcon fontSize="small" />
-                    </IconButton>
-                  </TableCell>
-                </TableRow>
-              ))}
+                return (
+                  <TableRow key={leave.id} hover>
+                    <TableCell sx={{ fontSize: "0.95rem" }}>
+                      {dayjs(leave.start_date).format("DD MMM YYYY")}
+                    </TableCell>
+                    <TableCell sx={{ fontSize: "0.95rem" }}>
+                      {dayjs(leave.end_date).format("DD MMM YYYY")}
+                    </TableCell>
+                    <TableCell sx={{ fontSize: "0.95rem" }}>
+                      {leave.total_days}
+                    </TableCell>
+                    <TableCell sx={{ fontSize: "0.95rem" }}>
+                      {leave.reason}
+                    </TableCell>
+                    <TableCell>
+                      <Tooltip
+                        title={
+                          isPastLeave
+                            ? "Past leaves cannot be deleted"
+                            : "Delete leave"
+                        }
+                      >
+                        <span>
+                          <IconButton
+                            onClick={() => handleDeleteOpen(leave.id)}
+                            size="small"
+                            disabled={isPastLeave}
+                          >
+                            <DeleteIcon fontSize="small" />
+                          </IconButton>
+                        </span>
+                      </Tooltip>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
           </TableBody>
         </Table>
       </TableContainer>
 
-      {/* Pagination */}
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "flex-end",
-          alignItems: "center",
-          gap: 1,
-          py: 1.5,
-          borderTop: "1px solid rgba(0,0,0,0.08)",
-        }}
-      >
+      <Box sx={{ display: "flex", justifyContent: "flex-end", py: 1.5 }}>
         <Pagination
           count={Math.ceil(sorted.length / rowsPerPage)}
           page={page + 1}
@@ -193,16 +234,9 @@ function LeaveHistoryTable({
           shape="rounded"
           color="primary"
           size="small"
-          sx={{
-            "& .MuiPaginationItem-root": {
-              borderRadius: "100%",
-              height: 32,
-            },
-          }}
         />
       </Box>
 
-      {/* Delete dialog */}
       <Dialog open={openDelete} onClose={handleDeleteClose}>
         <DialogTitle>Delete Leave</DialogTitle>
         <DialogContent>

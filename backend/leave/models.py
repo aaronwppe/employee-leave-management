@@ -16,7 +16,7 @@ class Leave(models.Model):
 
     start_date = models.DateField()
     end_date = models.DateField()
-    number_of_leaves = models.PositiveIntegerField(validators=[MinValueValidator(1)])
+    number_of_leaves = models.PositiveIntegerField(default=0)
 
     created_on = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(
@@ -42,17 +42,24 @@ class Leave(models.Model):
     )
 
     def soft_delete(self, account: Account):
-        if self.is_deleted is True:
+        if self.is_deleted:
             raise ValidationError("Leave is already deleted.")
+        today = timezone.now().date()
+        # Restrict deletion for past or current leaves
+        if self.start_date <= today:
+            raise ValidationError(
+                "You cannot delete a leave that has already started or passed."
+            )
+        # restore leave balance
+        self.account.remaining_leaves += self.number_of_leaves
+        self.account.save(update_fields=["remaining_leaves"])
 
         self.is_deleted = True
         self.deleted_on = timezone.now()
         self.deleted_by = account
         self.save(update_fields=["is_deleted", "deleted_on", "deleted_by"])
 
-    # ----------------------------------------------------
-    # WORKING DAY CALCULATION (NEW LOGIC)
-    # ----------------------------------------------------
+    # WORKING DAY CALCULATION 
     @staticmethod
     def calculate_working_days(start_date, end_date):
         total_days = 0
@@ -98,9 +105,6 @@ class Leave(models.Model):
 
         return total_days
 
-    # ----------------------------------------------------
-    # LEAVE CREATION
-    # ----------------------------------------------------
     @classmethod
     @transaction.atomic
     def create_leave(cls, account: Account, start_date, end_date, reason, created_by):
@@ -114,19 +118,28 @@ class Leave(models.Model):
         ).exists()
 
         if overlapping:
-            raise ValidationError("Overlapping leave already exists.")
+            raise ValidationError("You already have a leave applied for these dates.")
 
-        # Calculate working days (skip weekends + holidays)
+        # Calculate working days
         number_of_leaves = cls.calculate_working_days(start_date, end_date)
 
+        # If only holidays/weekoffs → allow but count 0
         if number_of_leaves <= 0:
-            raise ValidationError(
-                "Selected dates contain only holidays or week offs."
+            return cls.objects.create(
+                account=account,
+                start_date=start_date,
+                end_date=end_date,
+                number_of_leaves=0,
+                reason=reason,
+                created_by=created_by,
+                modified_by=created_by,
             )
 
         # Leave balance validation
         if account.remaining_leaves < number_of_leaves:
-            raise ValidationError("Cannot apply for this leave. Insufficient leaves.")
+            raise ValidationError(
+                f"You only have {account.remaining_leaves} leave(s) remaining."
+            )
 
         leave = cls.objects.create(
             account=account,
@@ -142,3 +155,4 @@ class Leave(models.Model):
         account.save(update_fields=["remaining_leaves"])
 
         return leave
+
