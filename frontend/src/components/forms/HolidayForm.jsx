@@ -14,7 +14,7 @@ function HolidayForm({
   return (
     <Stack spacing={1.5} sx={{ pt: 1.9 }}>
       <Stack direction="row" spacing={1.5} alignItems="flex-start">
-        
+
         {/* Date field */}
         <Stack spacing={0.5} sx={{ flex: 0.7 }}>
           <TextField
@@ -87,16 +87,28 @@ function HolidayForm({
             height: 56,
             minWidth: 56,
             borderRadius: 2,
+            backgroundColor: "#081250",
+            color: "#fff",
             boxShadow: "0 2px 6px rgba(0,0,0,0.15)",
             textTransform: "none",
-            fontWeight: 400,     // increase weight
-            fontSize: "1rem", // slightly larger text
-            gap: 0.5,            // spacing between icon and text
+            fontWeight: 400,
+            fontSize: "1rem",
+            gap: 0.5,
+
+            "&:hover": {
+              backgroundColor: "#081250", // hover color
+            },
+
+            "&.Mui-disabled": {
+              backgroundColor: "#b0b0b0",
+              color: "#fff",
+            },
           }}
         >
           <AddIcon fontSize="small" />
           Add
         </Button>
+
       </Stack>
     </Stack>
   );
