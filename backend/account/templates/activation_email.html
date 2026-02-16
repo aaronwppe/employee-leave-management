@@ -1,23 +1,9 @@
-<style>
-    a {
-        text-decoration: none;
-        text-align: center;
-        background-color: #3f51b5;
-        color: white;
-        padding: 13px;
-        border-radius: 10px;
-    }
-
-    div {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        height: 200px;
-        flex-direction: column;
-    }
-</style>
-
-<div>
+<div style="
+    width: 500px;
+    height: 200px;
+    margin:auto;
+    text-align: center;
+  ">
     <h2>Hello {{name}},</h2>
     <p>
         Your ELMS Account has been activated.
@@ -26,5 +12,17 @@
         <br />
     </p>
 
-    <a href="{{reset_password_link}}" target="_blank">Setup</a>
+    <br />
+
+    <a href="{{reset_password_link}}" target="_blank" style="
+      text-decoration: none;
+      text-align: center;
+      background-color: #081250;
+      color: white;
+      padding: 13px;
+      border-radius: 8px;
+
+    ">
+        Setup
+    </a>
 </div>
