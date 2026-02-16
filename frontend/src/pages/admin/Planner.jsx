@@ -115,24 +115,7 @@ function Planner() {
 
   return (
     <Box sx={{ p: 3 }}>
-      {/* Header */}
-      <Box
-        sx={{
-          p: 2,
-          bgcolor: "primary.main",
-          color: "#fff",
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          borderRadius: 2,
-          mb: 3,
-        }}
-      >
-        <Typography variant="h6" fontWeight={600}>
-          Admin Planner
-        </Typography>
-      </Box>
-
+      
       {!canEdit && (
         <Alert severity="info" sx={{ mb: 2 }}>
           Holidays can only be edited for future years.
