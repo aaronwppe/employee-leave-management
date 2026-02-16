@@ -13,15 +13,19 @@ import {
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
-
 import { addLeave } from "../../services/api/leave.api";
 import Calendar from "../common/Calendar";
 
-export default function LeaveForm({ onClose, onLeaveCreated }) {
+export default function LeaveForm({
+  onClose,
+  onLeaveCreated,
+  accountId = null,
+}) {
   const [formData, setFormData] = useState({
     start_date: "",
     end_date: "",
     reason: "",
+    account_id: accountId,
   });
 
   const [errors, setErrors] = useState({});
@@ -37,9 +41,10 @@ export default function LeaveForm({ onClose, onLeaveCreated }) {
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
-
     if (errors[e.target.name]) {
-      setErrors({ ...errors, [e.target.name]: undefined });
+      setErrors((prev) => {
+        return { ...prev, [e.target.name]: undefined };
+      });
     }
   };
 
@@ -47,15 +52,10 @@ export default function LeaveForm({ onClose, onLeaveCreated }) {
     let newErrors = {};
     const today = new Date().toISOString().split("T")[0];
 
-    if (!formData.start_date) {
-      newErrors.start_date = "Please select a start date.";
-    } else if (formData.start_date < today) {
-      newErrors.start_date = "Start date cannot be in the past.";
-    }
-
-    if (!formData.end_date) {
-      newErrors.end_date = "Please select an end date.";
-    }
+    if (!formData.start_date)
+      newErrors.start_date = "Start date is required";
+    if (!formData.end_date)
+      newErrors.end_date = "End date is required";
 
     if (
       formData.start_date &&
@@ -63,14 +63,11 @@ export default function LeaveForm({ onClose, onLeaveCreated }) {
       formData.start_date > formData.end_date
     ) {
       newErrors.end_date =
-        "End date must be the same as or after the start date.";
+        "End date cannot be before start date";
     }
 
-    if (!formData.reason.trim()) {
-      newErrors.reason = "Please enter a reason for your leave.";
-    } else if (formData.reason.trim().length < 3) {
-      newErrors.reason = "Reason must be at least 3 characters.";
-    }
+    if (!formData.reason.trim())
+      newErrors.reason = "Reason is required";
 
     setErrors(newErrors);
 
@@ -115,22 +112,15 @@ export default function LeaveForm({ onClose, onLeaveCreated }) {
 
       let friendly = "Unable to apply leave. Please try again.";
 
-      if (
-        msg.includes("overlap") ||
-        msg.includes("overlapping") ||
-        msg.includes("conflict")
-      ) {
+      if (apiMessage.toLowerCase().includes("overlap")) {
         friendly =
-          "You already have a leave scheduled for these dates. Please choose different dates.";
+          "You already have a leave request for these dates.";
       } else if (
         msg.includes("already") ||
         msg.includes("exists")
       ) {
         friendly =
-          "A leave already exists for the selected dates.";
-      } else if (msg.includes("remaining")) {
-        friendly =
-          "You do not have enough leave balance.";
+          "This leave request already exists.";
       } else if (apiMessage) {
         friendly = apiMessage;
       }
@@ -180,7 +170,11 @@ export default function LeaveForm({ onClose, onLeaveCreated }) {
               <CloseIcon />
             </IconButton>
 
-            <Typography variant="h5" align="center" sx={{ mb: 2, color: "primary.main" }}>
+            <Typography
+              variant="h5"
+              align="center"
+              sx={{ mb: 2, color: "primary.main" }}
+            >
               Apply Leave
             </Typography>
 
@@ -298,7 +292,7 @@ export default function LeaveForm({ onClose, onLeaveCreated }) {
         onClose={() => setAlert({ ...alert, open: false })}
         anchorOrigin={{ vertical: "top", horizontal: "center" }}
       >
-        <Alert severity={alert.severity} variant="filled">
+        <Alert severity={alert.severity}>
           {alert.message}
         </Alert>
       </Snackbar>

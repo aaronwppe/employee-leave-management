@@ -23,12 +23,17 @@ import CancelIcon from "@mui/icons-material/Cancel";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import { Edit as EditIcon } from "@mui/icons-material";
 import { MaterialReactTable } from "material-react-table";
+
 import {
   getAccounts,
   toggleStatus,
 } from "../../services/api/account.api";
+import {getLeaves} from "../../services/api/leave.api";
+
 import EmployeeCreateForm from "../forms/EmployeeCreateForm";
 import EmployeeEditForm from "../forms/EmployeeEditForm";
+import AdminLeaveHistoryPanel from "./AdminLeaveHistoryPanel";
+
 import "../../App.css";
 
 const EmployeeTable = () => {
@@ -42,23 +47,32 @@ const EmployeeTable = () => {
   const theme = useTheme();
   const fullScreen = useMediaQuery(theme.breakpoints.down("md"));
   const [selectedRow, setSelectedRow] = useState(null);
-  // fetch data
+
+  // Expand + leave states
+  const [expandedRowId, setExpandedRowId] = useState(null);
+  const [leaves, setLeaves] = useState([]);
+  const [leaveLoading, setLeaveLoading] = useState(false);
+
+
+  // fetch accounts
   const fetchAccounts = async () => {
     setIsSaving(true);
-    const data = await getAccounts();
-    setAccount(data);
-    setIsSaving(false);
+    try {
+      const data = await getAccounts();
+      setAccount(data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsSaving(false);
+    }
   };
+
   useEffect(() => {
     fetchAccounts();
   }, []);
 
-  const handleClickOpen = () => {
-    setOpen(true);
-  };
-  const handleClose = () => {
-    setOpen(false);
-  };
+  const handleClickOpen = () => setOpen(true);
+  const handleClose = () => setOpen(false);
 
   // Handle status change
   const handleStatusChange = async () => {
@@ -66,8 +80,7 @@ const EmployeeTable = () => {
     setLoading(true);
     try {
       await toggleStatus(selectedRow.id, selectedRow.status);
-      const data = await getAccounts();
-      setAccount(data);
+      await fetchAccounts();
       handleClose();
     } catch (error) {
       console.error(error);
@@ -77,44 +90,54 @@ const EmployeeTable = () => {
   };
 
   // create account popup handler
-  const openOnaboard = () => {
-    setShowOnboard(true);
+  const openOnaboard = () => setShowOnboard(true);
+  const closeOnaboard = () => setShowOnboard(false);
+
+  // fetch leaves
+  const fetchLeaves = async (accountId) => {
+    setLeaveLoading(true);
+    try {
+      const data = await getLeaves({ account_id: accountId});
+      setLeaves(data || []);
+    } catch (err) {
+      console.error(err);
+      setLeaves([]);
+    } finally {
+      setLeaveLoading(false);
+    }
   };
-  const closeOnaboard = () => {
-    setShowOnboard(false);
+
+  // eye icon click
+  const handleViewLeaves = async (row) => {
+    const rowId = row.id;              // MRT internal row ID
+    const accountId = row.original.id; // database ID
+
+    if (expandedRowId === rowId) {
+      setExpandedRowId(null);
+      return;
+    }
+
+    setExpandedRowId(rowId);
+    await fetchLeaves(accountId);
   };
+
 
   // table columns
   const columns = useMemo(
     () => [
-      {
-        accessorKey: "first_name",
-        header: "First Name",
-      },
-      {
-        accessorKey: "last_name",
-        header: "Last Name",
-      },
-      {
-        accessorKey: "email",
-        header: "Email",
-      },
-      {
-        accessorKey: "allocated_leaves",
-        header: "Allocated Leaves",
-      },
+      { accessorKey: "first_name", header: "First Name" },
+      { accessorKey: "last_name", header: "Last Name" },
+      { accessorKey: "email", header: "Email" },
+      { accessorKey: "allocated_leaves", header: "Allocated Leaves" },
       {
         accessorKey: "status",
         header: "Status",
-        // table display view
         Cell: ({ cell }) =>
           cell.getValue() ? (
             <Chip label="Active" color="success" variant="filled" />
           ) : (
             <Chip label="Inactive" color="error" variant="outlined" />
           ),
-
-        // for edit view
         Edit: ({ cell, row }) => {
           const [checked, setChecked] = React.useState(cell.getValue());
 
@@ -135,7 +158,7 @@ const EmployeeTable = () => {
         },
       },
     ],
-    [],
+    []
   );
 
   return (
@@ -155,6 +178,7 @@ const EmployeeTable = () => {
         data={account}
         enableRowActions
         enableEditing
+        enableExpanding
         editingMode="modal"
         initialState={{
           pagination: { pageSize: 10, pageIndex: 0 },
@@ -174,15 +198,26 @@ const EmployeeTable = () => {
         }}
         enableTopToolbar
         enableToolbarInternalActions={false}
-        // onEditingRowSave={handleSaveRow}
         state={{
           isLoading: isSaving,
+          expanded:
+            expandedRowId !== null
+              ? { [expandedRowId]: true }
+              : {},
         }}
         muiEditRowDialogProps={{
           disableEscapeKeyDown: isSaving,
         }}
         positionActionsColumn="last"
-        // create account button
+        renderDetailPanel={({ row }) =>
+          row.id === expandedRowId ? (
+            <AdminLeaveHistoryPanel
+              leaves={leaves}
+              loading={leaveLoading}
+              
+            />
+          ) : null
+        }
         renderTopToolbarCustomActions={() => (
           <Box sx={{ display: "flex", gap: "1rem", p: "4px" }}>
             <Button color="primary" onClick={openOnaboard} variant="contained">
@@ -192,7 +227,6 @@ const EmployeeTable = () => {
         )}
         renderRowActions={({ row }) => (
           <Box sx={{ display: "flex", flexWrap: "nowrap", gap: "8px" }}>
-            {/* Change status */}
             <Tooltip title="Account Status" placement="top" arrow>
               <IconButton
                 color="primary"
@@ -208,7 +242,7 @@ const EmployeeTable = () => {
                 )}
               </IconButton>
             </Tooltip>
-            {/* Edit the information */}
+
             <Tooltip title="Edit" placement="top" arrow>
               <IconButton
                 color="primary"
@@ -220,13 +254,11 @@ const EmployeeTable = () => {
                 <EditIcon />
               </IconButton>
             </Tooltip>
-            {/* Leave History */}
+
             <Tooltip title="Show Leave History" placement="top" arrow>
               <IconButton
                 color="primary"
-                onClick={() => {
-                  console.log("clicked!");
-                }}
+                onClick={() => handleViewLeaves(row)}
               >
                 <VisibilityIcon />
               </IconButton>
@@ -234,27 +266,19 @@ const EmployeeTable = () => {
           </Box>
         )}
       />
-      {/* confirmation dialog */}
-      <Dialog
-        fullScreen={fullScreen}
-        open={open}
-        onClose={handleClose}
-        aria-labelledby="responsive-dialog-title"
-      >
-        <DialogTitle id="responsive-dialog-title">
-          {"Change Account Status"}
-        </DialogTitle>
+
+      <Dialog fullScreen={fullScreen} open={open} onClose={handleClose}>
+        <DialogTitle>Change Account Status</DialogTitle>
         <DialogContent>
           <DialogContentText>
             Are you sure that you want to change the status?
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button autoFocus onClick={handleClose} disabled={loading}>
+          <Button onClick={handleClose} disabled={loading}>
             No
           </Button>
           <Button
-            autoFocus
             onClick={handleStatusChange}
             variant="contained"
             disabled={loading}
@@ -264,7 +288,6 @@ const EmployeeTable = () => {
         </DialogActions>
       </Dialog>
 
-      {/* Employee onboarding popup */}
       {showOnboard && (
         <EmployeeCreateForm
           onClose={closeOnaboard}
@@ -276,7 +299,7 @@ const EmployeeTable = () => {
         <EmployeeEditForm
           onClose={() => {
             setShowEditForm(false);
-            fetchAccounts()
+            fetchAccounts();
           }}
           row={editRow}
         />
