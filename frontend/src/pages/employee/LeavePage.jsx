@@ -24,6 +24,9 @@ function LeavePage() {
   const [leaveData, setLeaveData] = useState([]);
   const [loading, setLoading] = useState(false);
 
+  const currentYear = new Date().getFullYear();
+  const [selectedYear, setSelectedYear] = useState(currentYear);
+
   const { user } = useAuth();
 
   // Fetch account info
@@ -45,7 +48,7 @@ function LeavePage() {
     setLoading(true);
     try {
       const data = await getLeaves({
-        year: new Date().getFullYear(),
+        year: selectedYear,
       });
       setLeaveData(data || []);
     } catch (error) {
@@ -53,13 +56,17 @@ function LeavePage() {
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  }, [user, selectedYear]); // FIX: added selectedYear
 
-  // Initial load
+  // Load account data once
   useEffect(() => {
     fetchAccountData();
+  }, [fetchAccountData]);
+
+  // Reload leaves when year changes
+  useEffect(() => {
     fetchLeaves();
-  }, [fetchAccountData, fetchLeaves]);
+  }, [fetchLeaves]);
 
   // After leave created
   const handleLeaveCreated = async () => {
@@ -129,6 +136,7 @@ function LeavePage() {
             </Card>
           </Grid>
         </Grid>
+
         {/* apply button */}
         <Box
           sx={{
@@ -158,7 +166,8 @@ function LeavePage() {
           leaves={leaveData}
           onDelete={handleDeleteLeave}
           loading={loading}
-          year={new Date().getFullYear()}
+          year={selectedYear}
+          setYear={setSelectedYear}
         />
       </Container>
 

@@ -28,7 +28,13 @@ import CalendarViewMonthIcon from "@mui/icons-material/CalendarViewMonth";
 import DeleteIcon from "@mui/icons-material/Delete";
 import "../../App.css";
 
-function LeaveHistoryTable({ leaves = [], onDelete, loading, year }) {
+function LeaveHistoryTable({
+  leaves = [],
+  onDelete,
+  loading,
+  year,
+  setYear,
+}) {
   const [page, setPage] = useState(0);
   const rowsPerPage = 5;
 
@@ -53,8 +59,8 @@ function LeaveHistoryTable({ leaves = [], onDelete, loading, year }) {
 
   // Total leave days
   const totalLeaveDays = useMemo(() => {
-    return leaves.reduce((sum, leave) => sum + (leave.total_days || 0), 0);
-  }, [leaves]);
+    return filtered.reduce((sum, leave) => sum + (leave.total_days || 0), 0);
+  }, [filtered]);
 
   const handleDeleteOpen = (id) => {
     setLeaveId(id);
@@ -147,10 +153,17 @@ function LeaveHistoryTable({ leaves = [], onDelete, loading, year }) {
             size="small"
             label="Year"
             value={year}
+            onChange={(e) => setYear(e.target.value)}
             sx={{ width: 120 }}
-            disabled
           >
-            <MenuItem value={year}>{year}</MenuItem>
+            {[0, 1, 2, 3, 4].map((i) => {
+              const y = new Date().getFullYear() - i;
+              return (
+                <MenuItem key={y} value={y}>
+                  {y}
+                </MenuItem>
+              );
+            })}
           </TextField>
         </Box>
       </Box>

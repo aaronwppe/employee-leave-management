@@ -180,7 +180,7 @@ export default function LeaveForm({ onClose, onLeaveCreated }) {
             onChange={handleChange}
             error={!!errors.start_date}
             helperText={errors.start_date}
-            InputLabelProps={{ shrink: true }}
+            slotProps={{ shrink: true }}
             fullWidth
             disabled={loading}
           />
