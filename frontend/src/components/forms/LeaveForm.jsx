@@ -154,66 +154,32 @@ export default function LeaveForm({ onClose, onLeaveCreated }) {
               Apply Leave
             </Typography>
 
-            <Box
-              sx={{
-                display: "flex",
-                flexDirection: "column",
-                gap: 2,
-              }}
-            >
-              {/* Start Date */}
-              <TextField
-                label="Start Date"
-                name="start_date"
-                value={formData.start_date}
-                onChange={handleChange}
-                error={!!errors.start_date}
-                helperText={errors.start_date}
-                fullWidth
-                disabled={loading}
-                placeholder="YYYY-MM-DD"
-                InputProps={{
-                  endAdornment: (
-                    <InputAdornment position="end">
-                      <IconButton
-                        onClick={() => {
-                          setActiveField("start_date");
-                          setCalendarOpen(true);
-                        }}
-                      >
-                        <CalendarTodayIcon />
-                      </IconButton>
-                    </InputAdornment>
-                  ),
-                }}
-              />
+        <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+          <TextField
+            label="Start Date"
+            type="date"
+            name="start_date"
+            value={formData.start_date}
+            onChange={handleChange}
+            error={!!errors.start_date}
+            helperText={errors.start_date}
+            InputLabelProps={{ shrink: true }}
+            fullWidth
+            disabled={loading}
+          />
 
-              {/* End Date */}
-              <TextField
-                label="End Date"
-                name="end_date"
-                value={formData.end_date}
-                onChange={handleChange}
-                error={!!errors.end_date}
-                helperText={errors.end_date}
-                fullWidth
-                disabled={loading}
-                placeholder="YYYY-MM-DD"
-                InputProps={{
-                  endAdornment: (
-                    <InputAdornment position="end">
-                      <IconButton
-                        onClick={() => {
-                          setActiveField("end_date");
-                          setCalendarOpen(true);
-                        }}
-                      >
-                        <CalendarTodayIcon />
-                      </IconButton>
-                    </InputAdornment>
-                  ),
-                }}
-              />
+          <TextField
+            label="End Date"
+            type="date"
+            name="end_date"
+            value={formData.end_date}
+            onChange={handleChange}
+            error={!!errors.end_date}
+            helperText={errors.end_date}
+            InputLabelProps={{ shrink: true }}
+            fullWidth
+            disabled={loading}
+          />
 
               <TextField
                 label="Reason"
