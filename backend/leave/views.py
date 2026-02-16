@@ -1,4 +1,4 @@
-from rest_framework import viewsets, mixins
+from rest_framework import viewsets, mixins,status
 from rest_framework.response import Response
 from rest_framework.status import HTTP_201_CREATED
 from django.db.models import Q
@@ -7,6 +7,9 @@ from server.utils.responses import ApiResponseMixin
 from account.models import AccountRole
 from leave.permissions import LeavePermission
 from leave import serializers
+from django.core.exceptions import ValidationError
+from django.utils.timezone import now
+
 
 
 class LeaveViewSet(
@@ -17,31 +20,34 @@ class LeaveViewSet(
     viewsets.GenericViewSet,
 ):
     http_method_names = ["get", "post", "delete"]
-    queryset = Leave.objects.filter(is_deleted=False)
+    queryset = Leave.objects.all()
     pagination_class = None
     permission_classes = [LeavePermission]
 
     def get_queryset(self):
-        queryset = super().get_queryset()
+        queryset = Leave.objects.filter(is_deleted=False)
 
         if self.action != "list":
             return queryset
 
+        year = self.request.query_params.get("year")
+
+        if year:
+            queryset = queryset.filter(
+                Q(start_date__year=year) | Q(end_date__year=year)
+            )
+
+        # Employee → only their leaves
         if self.request.user.role == AccountRole.EMPLOYEE:
-            queryset = queryset.filter(account=self.request.user)
+            return queryset.filter(account=self.request.user)
 
-        serializer = serializers.LeaveListRequestSerializer(
-            data=self.request.query_params,
-            context={"request": self.request},
-        )
-        serializer.is_valid(raise_exception=True)
-        account = serializer.validated_data["account_id"]
-        year = serializer.validated_data["year"]
+        # Admin → optional account filter
+        account_id = self.request.query_params.get("account_id")
+        if account_id:
+            queryset = queryset.filter(account__id=account_id)
 
-        return queryset.filter(
-            Q(account__id=account.id)
-            & Q(Q(start_date__year=year) | Q(end_date__year=year))
-        )
+        return queryset
+
 
     def get_serializer_class(self):
         if self.action == "list":
@@ -63,7 +69,7 @@ class LeaveViewSet(
         return Response(
             data={
                 "leaves": response.data,
-            },
+            },      
             status=response.status_code,
         )
 
@@ -79,5 +85,24 @@ class LeaveViewSet(
             status=HTTP_201_CREATED,
         )
 
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+
+        try:
+            self.perform_destroy(instance)
+        except ValidationError as e:
+            return Response(
+                {"message": str(e)},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        return Response(
+            {"message": "Leave deleted successfully"},
+            status=status.HTTP_200_OK,
+        )
+    
     def perform_destroy(self, instance):
+        # Prevent deleting past or current leaves
+        if instance.start_date <= now().date():
+            raise ValidationError("Past or current leaves cannot be deleted.")
         instance.soft_delete(self.request.user)

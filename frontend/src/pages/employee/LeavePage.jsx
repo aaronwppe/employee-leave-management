@@ -8,6 +8,10 @@ import {
   Button,
   Container,
 } from "@mui/material";
+import EventAvailableIcon from "@mui/icons-material/EventAvailable";
+import AccessTimeIcon from "@mui/icons-material/AccessTime";
+import EventBusyIcon from "@mui/icons-material/EventBusy";
+
 import LeaveForm from "../../components/forms/LeaveForm";
 import LeaveHistoryTable from "../../components/tables/LeaveHistoryTable";
 import { getAccountById } from "../../services/api/account.api";
@@ -43,7 +47,7 @@ function LeavePage() {
       const data = await getLeaves({
         year: new Date().getFullYear(),
       });
-      setLeaveData(data);
+      setLeaveData(data || []);
     } catch (error) {
       console.error("Error fetching leaves:", error);
     } finally {
@@ -67,7 +71,11 @@ function LeavePage() {
   const handleDeleteLeave = async (leaveId) => {
     try {
       await deleteLeave(leaveId);
-      await fetchLeaves();
+
+      // remove leave instantly from UI
+      setLeaveData((prev) => prev.filter((l) => l.id !== leaveId));
+
+      // refresh account data for cards
       await fetchAccountData();
     } catch (error) {
       console.error("Error deleting leave:", error);
@@ -76,65 +84,74 @@ function LeavePage() {
 
   return (
     <>
-      <Container maxWidth="lg" sx={{ mt: 5 }}>
-        {/* HEADER */}
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "flex-end",
-            mb: 4,
-          }}
-        >
-          <Button
-            variant="contained"
-            sx={{ borderRadius: 3, px: 4, fontWeight: "bold" }}
-            onClick={() => setOpenForm(true)}
-          >
-            Apply Leave
-          </Button>
-        </Box>
-
+      <Container maxWidth="xl" sx={{ mt: 1 }}>
         {/* CARDS */}
-        <Grid container spacing={4} justifyContent="center">
-          <Grid item xs={12} sm={6} md={4}>
+        <Grid container spacing={3} justifyContent="center">
+          <Grid size={{ xs: 12, sm: 6, md: 4 }}>
             <Card sx={cardStyle}>
               <CardContent>
-                <Typography variant="h6" color="text.secondary">
-                  Allocated Leaves <br />(current year)
+                <EventAvailableIcon sx={{ fontSize: 40, color: "#1976d2" }} />
+                <Typography variant="h6" color="text.secondary" sx={{ mt: 1 }}>
+                  Allocated Leaves (Current Year)
                 </Typography>
-                <Typography variant="h3" sx={{ mt: 2, fontWeight: "bold" }}>
+                <Typography variant="h2" sx={{ mt: 1, fontWeight: "bold" }}>
                   {accountData?.allocated_leaves || 0}
                 </Typography>
               </CardContent>
             </Card>
           </Grid>
 
-          <Grid item xs={12} sm={6} md={4}>
+          <Grid size={{ xs: 12, sm: 6, md: 4 }}>
             <Card sx={cardStyle}>
               <CardContent>
-                <Typography variant="h6" color="text.secondary">
+                <AccessTimeIcon sx={{ fontSize: 40, color: "#2e7d32" }} />
+                <Typography variant="h6" color="text.secondary" sx={{ mt: 1 }}>
                   Remaining Leaves
                 </Typography>
-                <Typography variant="h3" sx={{ mt: 2, fontWeight: "bold" }}>
+                <Typography variant="h2" sx={{ mt: 1, fontWeight: "bold" }}>
                   {accountData?.remaining_leaves || 0}
                 </Typography>
               </CardContent>
             </Card>
           </Grid>
 
-          <Grid item xs={12} sm={6} md={4}>
+          <Grid size={{ xs: 12, sm: 6, md: 4 }}>
             <Card sx={cardStyle}>
               <CardContent>
-                <Typography variant="h6" color="text.secondary">
+                <EventBusyIcon sx={{ fontSize: 40, color: "#d32f2f" }} />
+                <Typography variant="h6" color="text.secondary" sx={{ mt: 1 }}>
                   Exhausted Leaves
                 </Typography>
-                <Typography variant="h3" sx={{ mt: 2, fontWeight: "bold" }}>
+                <Typography variant="h2" sx={{ mt: 1, fontWeight: "bold" }}>
                   {accountData?.leaves_exhausted || 0}
                 </Typography>
               </CardContent>
             </Card>
           </Grid>
         </Grid>
+        {/* apply button */}
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "flex-end",
+            my: 2,
+          }}
+        >
+          <Button
+            variant="contained"
+            size="large"
+            sx={{
+              borderRadius: 3,
+              px: 5,
+              py: 1.5,
+              fontWeight: "bold",
+              fontSize: "1rem",
+            }}
+            onClick={() => setOpenForm(true)}
+          >
+            Apply Leave
+          </Button>
+        </Box>
 
         {/* LEAVE HISTORY TABLE */}
         <LeaveHistoryTable
@@ -156,19 +173,19 @@ function LeavePage() {
 }
 
 const cardStyle = {
-  height: 200,
+  height: 240,
   width: "100%",
   borderRadius: 4,
-  backgroundColor: "#ffffff",
+  backgroundColor: "#f9fbfd",
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
   textAlign: "center",
   transition: "all 0.3s ease",
-  boxShadow: "0 4px 15px rgba(0,0,0,0.08)",
+  boxShadow: "0 6px 20px rgba(0,0,0,0.08)",
   "&:hover": {
-    transform: "translateY(-8px)",
-    boxShadow: "0 12px 30px rgba(0,0,0,0.15)",
+    transform: "translateY(-6px)",
+    boxShadow: "0 16px 40px rgba(0,0,0,0.15)",
   },
 };
 
