@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   Box,
   Typography,
@@ -9,28 +9,70 @@ import {
   Container,
 } from "@mui/material";
 import LeaveForm from "../../components/forms/LeaveForm";
+import LeaveHistoryTable from "../../components/tables/LeaveHistoryTable";
 import { getAccountById } from "../../services/api/account.api";
+import { getLeaves, deleteLeave } from "../../services/api/leave.api";
 import useAuth from "../../context/useAuth";
 
 function LeavePage() {
   const [openForm, setOpenForm] = useState(false);
   const [accountData, setAccountData] = useState(null);
+  const [leaveData, setLeaveData] = useState([]);
+  const [loading, setLoading] = useState(false);
+
   const { user } = useAuth();
 
-  useEffect(() => {
-    const fetchAccountData = async () => {
-      if (!user) return;
+  // Fetch account info
+  const fetchAccountData = useCallback(async () => {
+    if (!user) return;
 
-      try {
-        const data = await getAccountById(user.id);
-        setAccountData(data);
-      } catch (error) {
-        console.error("Error fetching account:", error);
-      }
-    };
-
-    fetchAccountData();
+    try {
+      const data = await getAccountById(user.id);
+      setAccountData(data);
+    } catch (error) {
+      console.error("Error fetching account:", error);
+    }
   }, [user]);
+
+  // Fetch leave history
+  const fetchLeaves = useCallback(async () => {
+    if (!user) return;
+
+    setLoading(true);
+    try {
+      const data = await getLeaves({
+        year: new Date().getFullYear(),
+      });
+      setLeaveData(data);
+    } catch (error) {
+      console.error("Error fetching leaves:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, [user]);
+
+  // Initial load
+  useEffect(() => {
+    fetchAccountData();
+    fetchLeaves();
+  }, [fetchAccountData, fetchLeaves]);
+
+  // After leave created
+  const handleLeaveCreated = async () => {
+    await fetchAccountData();
+    await fetchLeaves();
+  };
+
+  // Delete leave
+  const handleDeleteLeave = async (leaveId) => {
+    try {
+      await deleteLeave(leaveId);
+      await fetchLeaves();
+      await fetchAccountData();
+    } catch (error) {
+      console.error("Error deleting leave:", error);
+    }
+  };
 
   return (
     <>
@@ -40,7 +82,7 @@ function LeavePage() {
           sx={{
             display: "flex",
             justifyContent: "flex-end",
-           _attach: 4,
+            mb: 4,
           }}
         >
           <Button
@@ -58,7 +100,7 @@ function LeavePage() {
             <Card sx={cardStyle}>
               <CardContent>
                 <Typography variant="h6" color="text.secondary">
-                  Total Leaves
+                  Allocated Leaves <br />(current year)
                 </Typography>
                 <Typography variant="h3" sx={{ mt: 2, fontWeight: "bold" }}>
                   {accountData?.allocated_leaves || 0}
@@ -93,9 +135,22 @@ function LeavePage() {
             </Card>
           </Grid>
         </Grid>
+
+        {/* LEAVE HISTORY TABLE */}
+        <LeaveHistoryTable
+          leaves={leaveData}
+          onDelete={handleDeleteLeave}
+          loading={loading}
+          year={new Date().getFullYear()}
+        />
       </Container>
 
-      {openForm && <LeaveForm onClose={() => setOpenForm(false)} />}
+      {openForm && (
+        <LeaveForm
+          onClose={() => setOpenForm(false)}
+          onLeaveCreated={handleLeaveCreated}
+        />
+      )}
     </>
   );
 }

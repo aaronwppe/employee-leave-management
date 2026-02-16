@@ -60,11 +60,13 @@ function SetPasswordPage() {
       return;
     }
 
-    if (!validatePassword(newPassword)) {
+    if (!validatePassword()) {
       setError("Password does not meet all requirements");
       setOpenSnackbar(true);
       return;
     }
+
+    setLoading(true);
 
     try {
       await axios.post(
@@ -73,17 +75,23 @@ function SetPasswordPage() {
           account_id: accountId,
           token: token,
           password: newPassword,
-        },
+        }
       );
+
       setError("");
-      navigate("/login");
+      setOpenSnackbar(true);
+
+      // redirect after short delay
+      setTimeout(() => {
+        navigate("/login");
+      }, 1500);
     } catch (err) {
       console.log(err);
-      setError("Invalid link");
+      setError("Invalid or expired link");
+      setOpenSnackbar(true);
     } finally {
-      setLoading(false); 
+      setLoading(false);
     }
-    setOpenSnackbar(true);
   };
 
   return (
@@ -97,7 +105,10 @@ function SetPasswordPage() {
           justifyContent: "center",
         }}
       >
-        <Paper elevation={3} sx={{ p: 4, width: "100%", maxWidth: 350, borderRadius: 3 }}>
+        <Paper
+          elevation={3}
+          sx={{ p: 4, width: "100%", maxWidth: 350, borderRadius: 3 }}
+        >
           <Box sx={{ mb: 4, textAlign: "center" }}>
             <img src={logo} alt="Logo" style={{ width: 120, height: "auto" }} />
           </Box>
@@ -114,7 +125,7 @@ function SetPasswordPage() {
             value={newPassword}
             onChange={(e) => setNewPassword(e.target.value)}
             error={Boolean(error)}
-            slotProps={{
+            InputProps={{
               endAdornment: (
                 <InputAdornment position="end">
                   <IconButton onClick={handleTogglePassword} edge="end">
@@ -174,7 +185,7 @@ function SetPasswordPage() {
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
             error={Boolean(error)}
-            slotProps={{
+            InputProps={{
               endAdornment: (
                 <InputAdornment position="end">
                   <IconButton onClick={handleTogglePassword} edge="end">
@@ -198,7 +209,6 @@ function SetPasswordPage() {
                 "Confirm"
               )}
             </Button>
-
           </Box>
         </Paper>
 

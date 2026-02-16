@@ -68,7 +68,7 @@ function Calendar({
                 width: 6,
                 height: 6,
                 borderRadius: "50%",
-                background: "#0d47a1",
+                background: "#d32f2f",
               }}
             />
           ) : null
@@ -90,15 +90,15 @@ function Calendar({
             }),
 
             ...(isHoliday && !selected && {
-              background: "#1e88e5",
-              color: "#fff",
+              background: "#ffebee",
+              color: "#c62828",
             }),
 
             ...(isWeekOff &&
               !isHoliday &&
               !selected && {
-                background: "rgba(30,136,229,0.15)",
-                color: "#1565c0",
+                background: "#fff8e1",
+                color: "#ef6c00",
               }),
 
             ...(isToday && {
@@ -177,7 +177,7 @@ function Calendar({
       {selectedHoliday && (
         <Typography
           variant="body2"
-          color="primary"
+          color="error"
           align="center"
           mt={1}
           fontWeight={500}
@@ -196,14 +196,14 @@ function Calendar({
         <Chip
           size="small"
           label="Holiday"
-          sx={{ bgcolor: "#1e88e5", color: "#fff" }}
+          sx={{ bgcolor: "#ffebee", color: "#c62828" }}
         />
         <Chip
           size="small"
           label="Weekend"
           sx={{
-            bgcolor: "rgba(30,136,229,0.15)",
-            color: "#1565c0",
+            bgcolor: "#fff8e1",
+            color: "#ef6c00",
           }}
         />
         <Chip

@@ -1,4 +1,4 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import ProtectedRoute from "./routes/ProtectedRoute";
 import PublicOnlyRoute from "./routes/PublicOnlyRoute";
 import AdminLayout from "./layouts/AdminLayout";
@@ -12,16 +12,17 @@ import { setAuthContext } from "./services/api/client";
 import LeavePage from "./pages/employee/LeavePage";
 import AccountsPage from "./pages/admin/AccountsPage";
 import SetPasswordPage from "./pages/common/SetPasswordPage";
-import { Navigate } from "react-router-dom";
 
 export default function App() {
   const auth = useAuth();
+
   useEffect(() => {
     setAuthContext(auth);
   }, [auth]);
 
   return (
     <Routes>
+      {/* Login */}
       <Route
         path="/login"
         element={
@@ -31,6 +32,7 @@ export default function App() {
         }
       />
 
+      {/* Admin */}
       <Route
         path="/admin"
         element={
@@ -40,11 +42,12 @@ export default function App() {
         }
       >
         <Route index element={<AccountsPage />} />
-        <Route path="/admin/leaves" element={<LeavePage />} />
-        <Route path="/admin/planner" element={<Planner/>} />
-        <Route path="/admin/calendar" element={<Calendar/>} />
+        <Route path="leaves" element={<LeavePage />} />
+        <Route path="planner" element={<Planner />} />
+        <Route path="calendar" element={<Calendar />} />
       </Route>
 
+      {/* Employee */}
       <Route
         path="/employee"
         element={
@@ -54,8 +57,10 @@ export default function App() {
         }
       />
 
+      {/* Set password */}
       <Route path="/set-password" element={<SetPasswordPage />} />
 
+      {/* Fallback */}
       <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>
   );

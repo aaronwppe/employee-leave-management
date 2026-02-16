@@ -12,6 +12,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import {MaterialReactTable} from 'material-react-table';
 import {getAccounts,toggleStatus,updateAccount } from '../../services/api/account.api';
 import EmployeeOnboard from "../../components/forms/EmployeeForm";
+import '../../App.css'
 
 const EmployeeTable = () =>{
     const [showOnboard, setShowOnboard] = useState(false);
@@ -151,7 +152,7 @@ const EmployeeTable = () =>{
                 editingMode="modal"
 
                 initialState= {{
-                    pagination: { pageSize: 5, pageIndex: 0 },
+                    pagination: { pageSize: 10, pageIndex: 0 },
                     showGlobalFilter: true,
                 }}
                 muiPaginationProps= {{
@@ -204,7 +205,7 @@ const EmployeeTable = () =>{
                         }}
                     >
                         {row.original.status ?
-                            (<CheckCircleIcon color='success' />):(<CancelIcon color='error'/>)
+                            (<CancelIcon color='error'/>):(<CheckCircleIcon color='success' />)
                         }
                     </IconButton>
                     </Tooltip>
@@ -242,7 +243,7 @@ const EmployeeTable = () =>{
             >
                 <DialogTitle id="responsive-dialog-title">{"Change Account Status"}</DialogTitle>
                 <DialogContent>
-                    <DialogContentText>Are You Sure You Want To change this account's status?</DialogContentText>
+                    <DialogContentText>Are you sure that you want to change the status?</DialogContentText>
                 </DialogContent>
                 <DialogActions>
                     <Button autoFocus onClick={handleClose} disabled={loading}>

@@ -13,6 +13,12 @@ import {
   CircularProgress,
   Box,
   Pagination,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
+  Button,
 } from "@mui/material";
 
 import CalendarViewMonthIcon from "@mui/icons-material/CalendarViewMonth";
@@ -30,12 +36,33 @@ function HolidayTable({
   const [page, setPage] = useState(0);
   const rowsPerPage = 5;
 
+  // delete dialog state
+  const [openDelete, setOpenDelete] = useState(false);
+  const [holidayId, setHolidayId] = useState(null);
+
   // Sort holidays by date
   const sorted = useMemo(() => {
     return [...holidays].sort(
       (a, b) => dayjs(a.date).valueOf() - dayjs(b.date).valueOf()
     );
   }, [holidays]);
+
+  const handleDeleteOpen = (id) => {
+    setHolidayId(id);
+    setOpenDelete(true);
+  };
+
+  const handleDeleteClose = () => {
+    setOpenDelete(false);
+    setHolidayId(null);
+  };
+
+  const handleDeleteConfirm = () => {
+    if (holidayId) {
+      onDelete(holidayId);
+    }
+    handleDeleteClose();
+  };
 
   if (loading) {
     return (
@@ -87,7 +114,6 @@ function HolidayTable({
         Total holidays: {holidays.length}
       </Typography>
 
-
       {/* Table */}
       <TableContainer
         component={Paper}
@@ -137,7 +163,7 @@ function HolidayTable({
                   <TableCell>
                     {canEdit && (
                       <IconButton
-                        onClick={() => onDelete(h.id)}
+                        onClick={() => handleDeleteOpen(h.id)}
                         size="small"
                       >
                         <DeleteIcon fontSize="small" />
@@ -150,7 +176,7 @@ function HolidayTable({
         </Table>
       </TableContainer>
 
-      {/* Rounded Pagination (right aligned) */}
+      {/* Pagination */}
       <Box
         sx={{
           display: "flex",
@@ -170,13 +196,32 @@ function HolidayTable({
           size="small"
           sx={{
             "& .MuiPaginationItem-root": {
-              borderRadius: "100%",   
+              borderRadius: "100%",
               height: 32,
             },
           }}
         />
       </Box>
 
+      {/* Delete confirmation dialog */}
+      <Dialog open={openDelete} onClose={handleDeleteClose}>
+        <DialogTitle>Delete Holiday</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Are you sure you want to delete this holiday?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleDeleteClose}>Cancel</Button>
+          <Button
+            color="error"
+            variant="contained"
+            onClick={handleDeleteConfirm}
+          >
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }
