@@ -65,7 +65,7 @@ function HolidayForm({
             setNameError("");
           }
           }
-          onclose={()=>{setNameError("");}}
+          onClose={()=>{setNameError("");}}
           disabled={disabled}
           error={!!nameError}
           size="medium"

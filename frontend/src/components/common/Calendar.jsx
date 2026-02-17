@@ -167,7 +167,7 @@ function Calendar({
       {/* Footer section */}
       <Stack
         spacing={2}
-        mt={5.5}
+        mt={4}
         sx={{
           height: 135,          // fixed footer height
           justifyContent: "space-between",
@@ -198,14 +198,14 @@ function Calendar({
         </Box>
 
         {/* Legend */}
-        <Stack direction="row" spacing={1} justifyContent="center">
+        <Stack direction="row" spacing={3} justifyContent="center">
           <Chip
-            size="small"
+            size="small-x"
             label="Holiday"
             sx={{ bgcolor: "#ffebee", color: "#c62828" }}
           />
           <Chip
-            size="small"
+            size="small-x"
             label="Weekend"
             sx={{
               bgcolor: "#fff8e1",
@@ -213,7 +213,7 @@ function Calendar({
             }}
           />
           <Chip
-            size="small"
+            size="small-x"
             label="Today"
             variant="outlined"
             sx={{ borderColor: "#1565c0",}}
@@ -267,7 +267,7 @@ function Calendar({
 
           {/* Right side button */}
           <Button
-            size="small"
+            size="small-x"
             variant="contained"
             color="primary"
             startIcon={<TodayIcon />}
