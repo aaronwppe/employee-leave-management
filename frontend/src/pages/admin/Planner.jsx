@@ -11,6 +11,7 @@ import {
   Card,
   CardContent,
   Stack,
+  Snackbar,
 } from "@mui/material";
 
 import Calendar from "../../components/common/Calendar";
@@ -40,7 +41,9 @@ function Planner() {
   );
 
   const [dateError, setDateError] = useState("");
+  const [nameError, setNameError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
 
   const canEdit = selectedYear > currentYear;
 
@@ -49,7 +52,8 @@ function Planner() {
       setLoading(true);
       try {
         const data = await getHolidays(selectedYear);
-        setHolidays(data);
+        // Correct array extraction
+        setHolidays(Array.isArray(data) ? data : data?.holidays || []);
       } catch (err) {
         console.error("Error loading holidays", err);
       } finally {
@@ -60,31 +64,66 @@ function Planner() {
   }, [selectedYear, reload]);
 
   const handleAdd = async () => {
-    if (!selectedDate || !holidayName) return;
+    setDateError("");
+    setNameError("");
+    if (!selectedDate && !holidayName.trim()) {
+      setDateError("Date is required.");
+      setNameError("Holiday name is required.");
+      return;   
+    }
+    
+    if (!selectedDate) {
+      setDateError("Date is required.");
+      return
+    }
+
+    if (!holidayName.trim()) {
+      setNameError("Holiday name is required.");
+      return
+    }
+    
+
+    if (holidayName.trim().length > 40) {
+      setNameError("Holiday name must be under 40 characters.");
+      return;
+    }
+
+    const exists = holidays.some((h) => h.date === selectedDate);
+    if (exists) {
+      setDateError("This date is already marked as a holiday.");
+      return;
+    }
 
     try {
       await addHoliday({
-        name: holidayName,
+        name: holidayName.trim(),
         date: selectedDate,
       });
+
       setHolidayName("");
       setSelectedDate("");
+      setDateError("");
+      setNameError("");
       setReload((prev) => !prev);
     } catch (err) {
-      alert(err.error || "Error adding holiday");
+      setDateError(err.error || "Error adding holiday");
     }
   };
 
+  // Final delete handler
   const handleDelete = async (id) => {
     try {
       await deleteHoliday(id);
-      setReload((prev) => !prev);
     } catch (err) {
-      alert(err.error || "Error deleting holiday");
+      const message =
+        err.response?.data?.detail || "Error deleting holiday";
+      setErrorMsg(message);
     }
+
+    // always remove from UI
+    setHolidays((prev) => prev.filter((h) => h.id !== id));
   };
 
-  // Calendar click (affects form + calendar)
   const handleDateSelect = (date) => {
     const day = new Date(date).getDay();
 
@@ -102,20 +141,18 @@ function Planner() {
     }
 
     setDateError("");
-    setSelectedDate(date);      // form
-    setCalendarDate(date);      // calendar
+    setSelectedDate(date);
+    setCalendarDate(date);
     setSelectedYear(new Date(date).getFullYear());
   };
 
-  // Table click (calendar only)
   const handleTableDateSelect = (date) => {
     setCalendarDate(date);
     setSelectedYear(new Date(date).getFullYear());
   };
 
   return (
-    <Box sx={{ p: 3 }}>
-      
+    <Box sx={{ p: 1 }}>
       {!canEdit && (
         <Alert severity="info" sx={{ mb: 2 }}>
           Holidays can only be edited for future years.
@@ -132,7 +169,7 @@ function Planner() {
                 year={selectedYear}
                 onDateSelect={handleDateSelect}
                 onCalendarJump={(date) => {
-                  setCalendarDate(date);     // only move calendar
+                  setCalendarDate(date);
                   setSelectedYear(new Date(date).getFullYear());
                 }}
                 onYearChange={setSelectedYear}
@@ -143,12 +180,12 @@ function Planner() {
           </Card>
         </Grid>
 
+        {/* Form + Table */}
         <LocalizationProvider dateAdapter={AdapterDayjs}>
-          {/* Form + table */}
           <Grid size={{ xs: 12, md: 8 }}>
             <Card sx={{ borderRadius: 3, boxShadow: 2, height: 550 }}>
               <CardContent>
-                <Stack spacing={3}>
+                <Stack spacing={1}>
                   <HolidayForm
                     selectedDate={selectedDate}
                     setSelectedDate={setSelectedDate}
@@ -157,6 +194,10 @@ function Planner() {
                     onAdd={handleAdd}
                     disabled={!canEdit}
                     dateError={dateError}
+                    setDateError={setDateError}
+                    nameError={nameError}
+                    setNameError={setNameError}
+
                   />
 
                   <HolidayTable
@@ -173,6 +214,22 @@ function Planner() {
           </Grid>
         </LocalizationProvider>
       </Grid>
+
+      {/* Error Snackbar */}
+      <Snackbar
+        open={!!errorMsg}
+        autoHideDuration={3000}
+        onClose={() => setErrorMsg("")}
+        anchorOrigin={{ vertical: "top", horizontal: "right" }}
+      >
+        <Alert
+          severity="error"
+          variant="filled"
+          onClose={() => setErrorMsg("")}
+        >
+          {errorMsg}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 }

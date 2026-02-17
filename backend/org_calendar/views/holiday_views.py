@@ -66,9 +66,15 @@ class HolidayViewSet(
             status=HTTP_201_CREATED,
         )
 
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        self.perform_destroy(instance)
+        response = Response(status=200)
+        return response
     def perform_destroy(self, instance):
         # system account (id=1)
         # this is meant to be temporary
         # when auth module is ready the user's account must be used here
         system_account = Account.objects.filter(id=1).first()
         instance.soft_delete(system_account)
+

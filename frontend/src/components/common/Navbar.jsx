@@ -26,7 +26,7 @@ function Navbar({ role = "EMPLOYEE" }) {
     <Box
       sx={{
         backgroundColor: "#f5f6fa",
-        py: 2,
+        mt: 2,
       }}
     >
       <Container maxWidth={"100%"}>

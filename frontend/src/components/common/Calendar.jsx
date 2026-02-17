@@ -7,7 +7,7 @@ import {
   Button,
   Stack,
   Badge,
-  Typography,
+  Typography,Fade,
   IconButton,
   Chip,
 } from "@mui/material";
@@ -120,33 +120,6 @@ function Calendar({
         borderRadius: 3,
       }}
     >
-      {/* Header */}
-      <Stack
-        direction="row"
-        justifyContent="space-between"
-        alignItems="center"
-        mb={1}
-        pb={1}
-        sx={{ borderBottom: "1px solid rgba(0,0,0,0.06)" }}
-      >
-        <Typography variant="h6" fontWeight={600}>
-          {calendarValue.format("MMMM YYYY")}
-        </Typography>
-
-        <Button
-          size="small"
-          startIcon={<TodayIcon />}
-          onClick={() =>
-            onDateSelect?.(dayjs().format("YYYY-MM-DD"))
-          }
-          sx={{
-            textTransform: "none",
-            fontWeight: 500,
-          }}
-        >
-          Today
-        </Button>
-      </Stack>
 
       {/* Calendar */}
       {loading ? (
@@ -167,93 +140,150 @@ function Calendar({
             sx={{
               width: "100%",
               maxWidth: 420,
+              maxHeight:475,
               mx: "auto",
+               // Remove internal scroll
+              "& .MuiDayCalendar-root": {
+                overflow: "visible",
+              },
+              // override root overflow
+              "&.MuiDateCalendar-root": {
+                overflow: "visible",
+              },
+              // Increase calendar body height
+              "& .MuiDayCalendar-monthContainer": {
+                minHeight: 360,   // increase as needed
+              },
+              "& .MuiDayCalendar-slideTransition": {
+                 overflow:"visible",
+                minHeight: 320,
+              },
+             
             }}
           />
         </LocalizationProvider>
       )}
 
-      {/* Selected holiday */}
-      {selectedHoliday && (
-        <Typography
-          variant="body2"
-          color="error"
-          align="center"
-          mt={1}
-          fontWeight={500}
-        >
-          {selectedHoliday.date} – {selectedHoliday.name}
-        </Typography>
-      )}
-
-      {/* Legend */}
+      {/* Footer section */}
       <Stack
-        direction="row"
-        spacing={1}
-        justifyContent="center"
-        mt={1.5}
+        spacing={2}
+        mt={5.5}
+        sx={{
+          height: 135,          // fixed footer height
+          justifyContent: "space-between",
+          px: 2,
+          py: 2,
+          
+        }}
       >
-        <Chip
-          size="small"
-          label="Holiday"
-          sx={{ bgcolor: "#ffebee", color: "#c62828" }}
-        />
-        <Chip
-          size="small"
-          label="Weekend"
-          sx={{
-            bgcolor: "#fff8e1",
-            color: "#ef6c00",
-          }}
-        />
-        <Chip
-          size="small"
-          label="Today"
-          variant="outlined"
-          sx={{ borderColor: "#1565c0", color: "#1565c0" }}
-        />
+        {/* Selected holiday (fixed space + fade) */}
+        <Box sx={{ height: 28, display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <Fade in={Boolean(selectedHoliday)} timeout={300}>
+            <Typography
+              variant="body2"
+              sx={{
+                position: "absolute" ,
+                color: "primary.main",
+                p:1,
+              }}
+              fontWeight={700}
+              
+            >
+              
+              {selectedHoliday
+                ? `${selectedHoliday.date} – ${selectedHoliday.name}`
+                : ""}
+            </Typography>
+          </Fade>
+        </Box>
+
+        {/* Legend */}
+        <Stack direction="row" spacing={1} justifyContent="center">
+          <Chip
+            size="small"
+            label="Holiday"
+            sx={{ bgcolor: "#ffebee", color: "#c62828" }}
+          />
+          <Chip
+            size="small"
+            label="Weekend"
+            sx={{
+              bgcolor: "#fff8e1",
+              color: "#ef6c00",
+            }}
+          />
+          <Chip
+            size="small"
+            label="Today"
+            variant="outlined"
+            sx={{ borderColor: "#1565c0",}}
+          />
+        </Stack>
+
+        {/* Footer navigation */}
+        <Stack
+          direction="row"
+          justifyContent="space-between"
+          alignItems="center"
+        >
+          {/* Left group */}
+          <Stack direction="row" alignItems="center" spacing={2}>
+            <IconButton
+              size="small"
+              sx={{
+                bgcolor: "primary.main",
+                color: "primary.contrastText",
+                "&:hover": { bgcolor: "primary.dark" },
+                borderRadius: "50%",
+              }}
+              onClick={() => {
+                const target = jumpToHoliday("prev", calendarValue);
+                if (target) onCalendarJump?.(target.format("YYYY-MM-DD"));
+              }}
+            >
+              <ArrowBackIosNewIcon fontSize="small" />
+            </IconButton>
+
+            <Typography variant="body2" fontWeight={700}>
+              Holiday
+            </Typography>
+
+            <IconButton
+              size="small"
+              sx={{
+                bgcolor: "primary.main",
+                color: "primary.contrastText",
+                "&:hover": { bgcolor: "primary.dark" },
+                borderRadius: "50%",
+              }}
+              onClick={() => {
+                const target = jumpToHoliday("next", calendarValue);
+                if (target) onCalendarJump?.(target.format("YYYY-MM-DD"));
+              }}
+            >
+              <ArrowForwardIosIcon fontSize="small" />
+            </IconButton>
+          </Stack>
+
+          {/* Right side button */}
+          <Button
+            size="small"
+            variant="contained"
+            color="primary"
+            startIcon={<TodayIcon />}
+            onClick={() =>
+              onDateSelect?.(dayjs().format("YYYY-MM-DD"))
+            }
+            sx={{
+              fontWeight: 700,
+              px: 3,
+            }}
+          >
+            Today
+          </Button>
+        </Stack>
       </Stack>
 
-      {/* Footer navigation */}
-      <Stack
-        direction="row"
-        justifyContent="center"
-        alignItems="center"
-        spacing={1}
-        mt={2}
-      >
-        <IconButton
-          size="small"
-          sx={{
-            border: "1px solid rgba(0,0,0,0.1)",
-            borderRadius: "50%",
-          }}
-          onClick={() => {
-            const target = jumpToHoliday("prev", calendarValue);
-            if (target) onCalendarJump?.(target.format("YYYY-MM-DD"));
-          }}
-        >
-          <ArrowBackIosNewIcon fontSize="small" />
-        </IconButton>
-
-        <Typography variant="body2" fontWeight={500}>
-          Holiday
-        </Typography>
-
-        <IconButton
-          size="small"
-          sx={{
-            border: "1px solid rgba(0,0,0,0.1)",
-            borderRadius: "50%",
-          }}
-          onClick={() => {
-            const target = jumpToHoliday("next", calendarValue);
-            if (target) onCalendarJump?.(target.format("YYYY-MM-DD"));
-          }}
-        >
-          <ArrowForwardIosIcon fontSize="small" />
-        </IconButton>
-      </Stack>
     </Paper>
   );
 }

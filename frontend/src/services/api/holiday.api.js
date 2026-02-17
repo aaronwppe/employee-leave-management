@@ -24,6 +24,5 @@ export const deleteHoliday = async (id) => {
 // GET /api/weekoff/
 export const getWeekOffs = async () => {
   const res = await api.get("/weekoff/");
-  console.log(res);
   return res.data.weekoffs;
 };
