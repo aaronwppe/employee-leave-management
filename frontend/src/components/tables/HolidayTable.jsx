@@ -32,17 +32,18 @@ function HolidayTable({
   loading,
   year,
 }) {
-  // Pagination state
   const [page, setPage] = useState(0);
   const rowsPerPage = 5;
 
-  // delete dialog state
   const [openDelete, setOpenDelete] = useState(false);
   const [holidayId, setHolidayId] = useState(null);
 
-  // Sort holidays by date
+  const [deletingId, setDeletingId] = useState(null);
+
+  // FIX: safe fallback if holidays is not an array
   const sorted = useMemo(() => {
-    return [...holidays].sort(
+    const safeHolidays = Array.isArray(holidays) ? holidays : [];
+    return [...safeHolidays].sort(
       (a, b) => dayjs(a.date).valueOf() - dayjs(b.date).valueOf()
     );
   }, [holidays]);
@@ -57,9 +58,11 @@ function HolidayTable({
     setHolidayId(null);
   };
 
-  const handleDeleteConfirm = () => {
+  const handleDeleteConfirm = async () => {
     if (holidayId) {
-      onDelete(holidayId);
+      setDeletingId(holidayId);
+      await onDelete(holidayId);
+      setDeletingId(null);
     }
     handleDeleteClose();
   };
@@ -72,7 +75,7 @@ function HolidayTable({
     );
   }
 
-  if (!holidays.length) {
+  if (!sorted.length) {
     return (
       <Typography
         variant="body2"
@@ -86,7 +89,6 @@ function HolidayTable({
 
   return (
     <Box mt={2}>
-      {/* Top Heading Bar */}
       <Box
         className={"TopBar"}
         sx={{
@@ -111,10 +113,9 @@ function HolidayTable({
           fontWeight: 600,
         }}
       >
-        Total holidays: {holidays.length}
+        Total holidays: {sorted.length}
       </Typography>
 
-      {/* Table */}
       <TableContainer
         component={Paper}
         sx={{
@@ -165,8 +166,13 @@ function HolidayTable({
                       <IconButton
                         onClick={() => handleDeleteOpen(h.id)}
                         size="small"
+                        disabled={deletingId === h.id}
                       >
-                        <DeleteIcon fontSize="small" />
+                        {deletingId === h.id ? (
+                          <CircularProgress size={18} />
+                        ) : (
+                          <DeleteIcon fontSize="small" />
+                        )}
                       </IconButton>
                     )}
                   </TableCell>
@@ -176,7 +182,6 @@ function HolidayTable({
         </Table>
       </TableContainer>
 
-      {/* Pagination */}
       <Box
         sx={{
           display: "flex",
@@ -203,7 +208,6 @@ function HolidayTable({
         />
       </Box>
 
-      {/* Delete confirmation dialog */}
       <Dialog open={openDelete} onClose={handleDeleteClose}>
         <DialogTitle>Delete Holiday</DialogTitle>
         <DialogContent>
@@ -217,8 +221,13 @@ function HolidayTable({
             color="error"
             variant="contained"
             onClick={handleDeleteConfirm}
+            disabled={deletingId === holidayId}
           >
-            Delete
+            {deletingId === holidayId ? (
+              <CircularProgress size={20} color="inherit" />
+            ) : (
+              "Delete"
+            )}
           </Button>
         </DialogActions>
       </Dialog>

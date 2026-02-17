@@ -56,6 +56,7 @@ function LeaveHistoryTable({
       (a, b) => dayjs(a.start_date).valueOf() - dayjs(b.start_date).valueOf()
     );
   }, [filtered]);
+  
 
   // Total leave days
   const totalLeaveDays = useMemo(() => {
@@ -202,10 +203,10 @@ function LeaveHistoryTable({
                 return (
                   <TableRow key={leave.id} hover>
                     <TableCell sx={{ fontSize: "0.95rem" }}>
-                      {dayjs(leave.start_date).format("DD MMM YYYY")}
+                      {dayjs(leave.start_date).format("YYYY-MM-DD")}
                     </TableCell>
                     <TableCell sx={{ fontSize: "0.95rem" }}>
-                      {dayjs(leave.end_date).format("DD MMM YYYY")}
+                      {dayjs(leave.end_date).format("YYYY-MM-DD")}
                     </TableCell>
                     <TableCell sx={{ fontSize: "0.95rem" }}>
                       {leave.total_days}
