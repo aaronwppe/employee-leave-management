@@ -1,24 +1,17 @@
 from pathlib import Path
 import os, dj_database_url
 
-# from corsheaders.defaults import default_headers
-
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+SECRET_KEY = os.environ.get("ELMS_SECRET_KEY")
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
+DEBUG = os.environ.get("ELMS_DEBUG", "False") == "True"
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get("SECRET_KEY")
-
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get("DEBUG", "False") == "True"
-
-
-ALLOWED_HOSTS = [os.environ.get("RENDER_HOST_URL")]
+ALLOWED_HOSTS = []
+if not DEBUG:
+    ALLOWED_HOSTS.append(os.environ.get("ELMS_HOST_URL"))
 
 
 # Application definition
@@ -131,12 +124,7 @@ SIMPLE_JWT = {
     "BLACKLIST_AFTER_ROTATION": True,
 }
 
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",
-    "http://127.0.0.1:5173",
-    "https://employee-leave-management-bice.vercel.app/login",
-]
-# CORS_ALLOW_HEADERS = list(default_headers)
+CORS_ALLOWED_ORIGINS = [os.environ.get("ELMS_FRONTEND_URL")]
 CORS_ALLOW_CREDENTIALS = True
 
 
