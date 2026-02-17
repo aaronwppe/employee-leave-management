@@ -41,9 +41,7 @@ export default function LeaveForm({
   const [activeField, setActiveField] = useState(null);
 
   const handleChange = (e) => {
-    setFormData((prev) => {
-      return { ...prev, [e.target.name]: e.target.value };
-    });
+    setFormData({ ...formData, [e.target.name]: e.target.value });
     if (errors[e.target.name]) {
       setErrors((prev) => {
         return { ...prev, [e.target.name]: undefined };
@@ -164,14 +162,10 @@ export default function LeaveForm({
         onClick={onClose}
       >
         <Box
-          sx={{
-            display: "flex",
-            alignItems: "flex-start",
-            gap: 3,
-          }}
+          sx={{ display: "flex", alignItems: "flex-start", gap: 3 }}
           onClick={(e) => e.stopPropagation()}
         >
-          {/* Leave Form */}
+          {/* Form */}
           <Paper
             elevation={6}
             sx={{
@@ -251,6 +245,7 @@ export default function LeaveForm({
                 }}
               />
 
+              {/* Reason */}
               <TextField
                 label="Reason"
                 name="reason"
@@ -267,13 +262,7 @@ export default function LeaveForm({
               <Box display="flex" justifyContent="flex-end">
                 <Button
                   variant="contained"
-                  color="primary"
-                  sx={{
-                    py: 1.25,
-                    px: 3,
-                    fontWeight: 600,
-                    minWidth: 140,
-                  }}
+                  sx={{ py: 1.25, px: 3, fontWeight: 600, minWidth: 140 }}
                   onClick={handleSubmit}
                   disabled={loading}
                 >
@@ -308,6 +297,7 @@ export default function LeaveForm({
         </Box>
       </Box>
 
+      {/* Popup message */}
       <Snackbar
         open={alert.open}
         autoHideDuration={3000}

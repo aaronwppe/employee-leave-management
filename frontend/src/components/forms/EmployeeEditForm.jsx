@@ -22,7 +22,6 @@ export default function EmployeeEditForm({ onClose, row }) {
     allocated_leaves: row.allocated_leaves,
     status: row.status,
   });
-  console.log();
 
   const [errors, setErrors] = useState({});
   const [alert, setAlert] = useState({
@@ -179,18 +178,6 @@ export default function EmployeeEditForm({ onClose, row }) {
             error={!!errors.allocated_leaves}
             helperText={errors.allocated_leaves}
             fullWidth
-          />
-
-          <FormControlLabel
-            control={
-              <Switch
-                name="is_active"
-                checked={formData.status}
-                onChange={handleChange}
-                color="success"
-              />
-            }
-            label={formData.status ? "Active Status" : "Inactive Status"}
           />
 
           <Box display="flex" gap={2} justifyContent="flex-end">
