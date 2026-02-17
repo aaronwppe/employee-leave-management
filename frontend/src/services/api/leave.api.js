@@ -1,18 +1,18 @@
 import api from "./client";
 
-export const getLeaves = async ({ year = null, accountId = null }) => {
-  let params = {};
+export const getLeaves = async ({
+  year = null,
+  account_id = null,
+  accountId = null,
+} = {}) => {
+  const params = {};
 
-  if (year) {
-    params["year"] = year;
-  }
-  if (accountId) {
-    params["account_id"] = accountId;
-  }
+  if (year) params.year = year;
 
-  const res = await api.get("/leave/", {
-    params,
-  });
+  const finalAccountId = account_id || accountId;
+  if (finalAccountId) params.account_id = finalAccountId;
+
+  const res = await api.get("/leave/", { params });
 
   return res.data.data.leaves;
 };

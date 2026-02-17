@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   Dialog,
   DialogTitle,
@@ -11,6 +11,7 @@ import {
   CircularProgress,
 } from "@mui/material";
 import dayjs from "dayjs";
+import LeaveForm from "../forms/LeaveForm";
 
 const AdminLeaveDialog = ({
   open,
@@ -18,8 +19,21 @@ const AdminLeaveDialog = ({
   leaves = [],
   loading,
   employee,
-  onAddLeave,
+  onAddLeaveSuccess,
 }) => {
+  const [showForm, setShowForm] = useState(false);
+
+  const handleCloseForm = () => {
+    setShowForm(false);
+  };
+
+  const handleLeaveCreated = async () => {
+    if (onAddLeaveSuccess) {
+      await onAddLeaveSuccess();
+    }
+    setShowForm(false);
+  };
+
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
       <DialogTitle>
@@ -27,16 +41,33 @@ const AdminLeaveDialog = ({
       </DialogTitle>
 
       <DialogContent>
-        <Box mb={2} display="flex" justifyContent="flex-end">
-          <Button
-            variant="contained"
-            size="small"
-            onClick={onAddLeave}
-          >
-            + Add Leave
-          </Button>
-        </Box>
+        {/* Add leave button */}
+        {!showForm && (
+          <Box mb={2} display="flex" justifyContent="flex-end">
+            <Button
+              variant="contained"
+              size="small"
+              onClick={() => setShowForm(true)}
+            >
+              + Add Leave
+            </Button>
+          </Box>
+        )}
 
+        {/* Inline leave form */}
+        {showForm && employee && (
+          <Box mb={3}>
+            <Paper sx={{ p: 2 }} elevation={1}>
+              <LeaveForm
+                accountId={employee.id}
+                onClose={handleCloseForm}
+                onLeaveCreated={handleLeaveCreated}
+              />
+            </Paper>
+          </Box>
+        )}
+
+        {/* Leave list */}
         {loading ? (
           <Box display="flex" justifyContent="center" py={4}>
             <CircularProgress />

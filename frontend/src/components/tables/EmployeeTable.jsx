@@ -28,11 +28,11 @@ import {
   getAccounts,
   toggleStatus,
 } from "../../services/api/account.api";
-import {getLeaves} from "../../services/api/leave.api";
+import { getLeaves } from "../../services/api/leave.api";
 
-import EmployeeCreateForm from "../forms/EmployeeCreateForm";
-import EmployeeEditForm from "../forms/EmployeeEditForm";
-import AdminLeaveHistoryPanel from "./AdminLeaveHistoryPanel";
+import EmployeeCreateForm from "../../components/forms/EmployeeCreateForm";
+import EmployeeEditForm from "../../components/forms/EmployeeEditForm";
+import AdminLeaveDialog from "./AdminLeaveDialog";
 
 import "../../App.css";
 
@@ -48,11 +48,11 @@ const EmployeeTable = () => {
   const fullScreen = useMediaQuery(theme.breakpoints.down("md"));
   const [selectedRow, setSelectedRow] = useState(null);
 
-  // Expand + leave states
-  const [expandedRowId, setExpandedRowId] = useState(null);
+  // Leave dialog state
+  const [leaveDialogOpen, setLeaveDialogOpen] = useState(false);
+  const [currentEmployee, setCurrentEmployee] = useState(null);
   const [leaves, setLeaves] = useState([]);
   const [leaveLoading, setLeaveLoading] = useState(false);
-
 
   // fetch accounts
   const fetchAccounts = async () => {
@@ -97,7 +97,7 @@ const EmployeeTable = () => {
   const fetchLeaves = async (accountId) => {
     setLeaveLoading(true);
     try {
-      const data = await getLeaves({ account_id: accountId});
+      const data = await getLeaves({ account_id: accountId });
       setLeaves(data || []);
     } catch (err) {
       console.error(err);
@@ -109,18 +109,11 @@ const EmployeeTable = () => {
 
   // eye icon click
   const handleViewLeaves = async (row) => {
-    const rowId = row.id;              // MRT internal row ID
-    const accountId = row.original.id; // database ID
-
-    if (expandedRowId === rowId) {
-      setExpandedRowId(null);
-      return;
-    }
-
-    setExpandedRowId(rowId);
-    await fetchLeaves(accountId);
+    const employee = row.original;
+    setCurrentEmployee(employee);
+    setLeaveDialogOpen(true);
+    await fetchLeaves(employee.id);
   };
-
 
   // table columns
   const columns = useMemo(
@@ -178,7 +171,6 @@ const EmployeeTable = () => {
         data={account}
         enableRowActions
         enableEditing
-        enableExpanding
         editingMode="modal"
         initialState={{
           pagination: { pageSize: 10, pageIndex: 0 },
@@ -200,24 +192,11 @@ const EmployeeTable = () => {
         enableToolbarInternalActions={false}
         state={{
           isLoading: isSaving,
-          expanded:
-            expandedRowId !== null
-              ? { [expandedRowId]: true }
-              : {},
         }}
         muiEditRowDialogProps={{
           disableEscapeKeyDown: isSaving,
         }}
         positionActionsColumn="last"
-        renderDetailPanel={({ row }) =>
-          row.id === expandedRowId ? (
-            <AdminLeaveHistoryPanel
-              leaves={leaves}
-              loading={leaveLoading}
-              
-            />
-          ) : null
-        }
         renderTopToolbarCustomActions={() => (
           <Box sx={{ display: "flex", gap: "1rem", p: "4px" }}>
             <Button color="primary" onClick={openOnaboard} variant="contained">
@@ -267,6 +246,7 @@ const EmployeeTable = () => {
         )}
       />
 
+      {/* Status dialog */}
       <Dialog fullScreen={fullScreen} open={open} onClose={handleClose}>
         <DialogTitle>Change Account Status</DialogTitle>
         <DialogContent>
@@ -288,6 +268,19 @@ const EmployeeTable = () => {
         </DialogActions>
       </Dialog>
 
+      {/* Leave dialog */}
+      <AdminLeaveDialog
+        open={leaveDialogOpen}
+        onClose={() => setLeaveDialogOpen(false)}
+        leaves={leaves}
+        loading={leaveLoading}
+        employee={currentEmployee}
+        onAddLeaveSuccess={() =>
+          currentEmployee && fetchLeaves(currentEmployee.id)
+        }
+      />
+
+      {/* Employee onboarding popup */}
       {showOnboard && (
         <EmployeeCreateForm
           onClose={closeOnaboard}
