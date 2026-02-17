@@ -12,12 +12,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-la18l_-bi=b)$l%pro2stfoq-)tsf=^%n(gqm3m3hi7nn9wj57"
+SECRET_KEY = os.environ.get("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get("DEBUG", "False") == "True"
 
-ALLOWED_HOSTS = []
+
+ALLOWED_HOSTS = [os.environ.get("RENDER_HOST_URL")]
 
 
 # Application definition
@@ -133,6 +134,7 @@ SIMPLE_JWT = {
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
+    "https://employee-leave-management-bice.vercel.app/login",
 ]
 # CORS_ALLOW_HEADERS = list(default_headers)
 CORS_ALLOW_CREDENTIALS = True
