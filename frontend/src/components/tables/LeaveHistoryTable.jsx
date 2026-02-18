@@ -56,7 +56,7 @@ function LeaveHistoryTable({
       (a, b) => dayjs(a.start_date).valueOf() - dayjs(b.start_date).valueOf()
     );
   }, [filtered]);
-  
+
 
   // Total leave days
   const totalLeaveDays = useMemo(() => {
@@ -84,19 +84,6 @@ function LeaveHistoryTable({
       <Box mt={4} display="flex" justifyContent="center">
         <CircularProgress />
       </Box>
-    );
-  }
-
-  // Empty state
-  if (!leaves.length) {
-    return (
-      <Typography
-        variant="body2"
-        color="text.secondary"
-        sx={{ mt: 4, textAlign: "center" }}
-      >
-        No leaves taken in {year}.
-      </Typography>
     );
   }
 
@@ -193,50 +180,55 @@ function LeaveHistoryTable({
           </TableHead>
 
           <TableBody>
-            {sorted
-              .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-              .map((leave) => {
-                const isPastLeave =
-                  dayjs(leave.start_date).isBefore(dayjs(), "day") ||
-                  dayjs(leave.start_date).isSame(dayjs(), "day");
+            {sorted.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={5} align="center">
+                  No leaves taken in {year}.
+                </TableCell>
+              </TableRow>
+            ) : (
+              sorted
+                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                .map((leave) => {
+                  const isPastLeave =
+                    dayjs(leave.start_date).isBefore(dayjs(), "day") ||
+                    dayjs(leave.start_date).isSame(dayjs(), "day");
 
-                return (
-                  <TableRow key={leave.id} hover>
-                    <TableCell sx={{ fontSize: "0.95rem" }}>
-                      {dayjs(leave.start_date).format("YYYY-MM-DD")}
-                    </TableCell>
-                    <TableCell sx={{ fontSize: "0.95rem" }}>
-                      {dayjs(leave.end_date).format("YYYY-MM-DD")}
-                    </TableCell>
-                    <TableCell sx={{ fontSize: "0.95rem" }}>
-                      {leave.total_days}
-                    </TableCell>
-                    <TableCell sx={{ fontSize: "0.95rem" }}>
-                      {leave.reason}
-                    </TableCell>
-                    <TableCell>
-                      <Tooltip
-                        title={
-                          isPastLeave
-                            ? "Past leaves cannot be deleted"
-                            : "Delete leave"
-                        }
-                      >
-                        <span>
-                          <IconButton
-                            onClick={() => handleDeleteOpen(leave.id)}
-                            size="small"
-                            disabled={isPastLeave}
-                          >
-                            <DeleteIcon fontSize="small" />
-                          </IconButton>
-                        </span>
-                      </Tooltip>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
+                  return (
+                    <TableRow key={leave.id} hover>
+                      <TableCell>
+                        {dayjs(leave.start_date).format("YYYY-MM-DD")}
+                      </TableCell>
+                      <TableCell>
+                        {dayjs(leave.end_date).format("YYYY-MM-DD")}
+                      </TableCell>
+                      <TableCell>{leave.total_days}</TableCell>
+                      <TableCell>{leave.reason}</TableCell>
+                      <TableCell>
+                        <Tooltip
+                          title={
+                            isPastLeave
+                              ? "Past leaves cannot be deleted"
+                              : "Delete leave"
+                          }
+                        >
+                          <span>
+                            <IconButton
+                              onClick={() => handleDeleteOpen(leave.id)}
+                              size="small"
+                              disabled={isPastLeave}
+                            >
+                              <DeleteIcon fontSize="small" />
+                            </IconButton>
+                          </span>
+                        </Tooltip>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })
+            )}
           </TableBody>
+
         </Table>
       </TableContainer>
 
