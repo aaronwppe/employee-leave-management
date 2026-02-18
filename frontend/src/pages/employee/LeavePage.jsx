@@ -35,6 +35,7 @@ function LeavePage() {
 
     try {
       const data = await getAccountById(user.id);
+      console.log(data);
       setAccountData(data);
     } catch (error) {
       console.error("Error fetching account:", error);
@@ -102,7 +103,7 @@ function LeavePage() {
                   Allocated Leaves (Current Year)
                 </Typography>
                 <Typography variant="h2" sx={{ mt: 1, fontWeight: "bold" }}>
-                  {accountData?.allocated_leaves || 0}
+                  {accountData?.leaves_for_current_year || 0}
                 </Typography>
               </CardContent>
             </Card>
@@ -116,7 +117,7 @@ function LeavePage() {
                   Remaining Leaves
                 </Typography>
                 <Typography variant="h2" sx={{ mt: 1, fontWeight: "bold" }}>
-                  {accountData?.remaining_leaves || 0}
+                  {Math.max(accountData?.remaining_leaves || 0, 0)}
                 </Typography>
               </CardContent>
             </Card>

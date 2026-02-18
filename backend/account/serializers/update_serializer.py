@@ -5,6 +5,7 @@ from account.models import Account
 
 class AccountUpdateSerializer(serializers.ModelSerializer):
     status = serializers.BooleanField(source="is_active")
+    leaves_for_current_year = serializers.IntegerField(source="current_year_allocated_leaves")
     allocated_leaves = serializers.IntegerField(source="default_allocated_leaves")
 
     class Meta:
@@ -13,6 +14,7 @@ class AccountUpdateSerializer(serializers.ModelSerializer):
             "first_name",
             "last_name",
             "email",
+            "leaves_for_current_year",
             "allocated_leaves",
             "status",
             "role",

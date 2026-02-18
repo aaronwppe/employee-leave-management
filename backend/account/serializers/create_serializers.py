@@ -6,7 +6,7 @@ from account.models import Account
 class AccountCreateSerializer(serializers.ModelSerializer):
     status = serializers.BooleanField(source="is_active")
     allocated_leaves = serializers.IntegerField(source="default_allocated_leaves")
-    leaves_for_current_year = serializers.IntegerField(source="remaining_leaves")
+    leaves_for_current_year = serializers.IntegerField(source="current_year_allocated_leaves")
 
     class Meta:
         model = Account
