@@ -289,8 +289,16 @@ export default function LeaveForm({
                     ...prev,
                     [activeField]: date,
                   }));
+
+                  // Clear error for that field
+                  setErrors((prev) => ({
+                    ...prev,
+                    [activeField]: undefined,
+                  }));
+
                   setCalendarOpen(false);
                 }}
+
               />
             </Box>
           )}
