@@ -63,6 +63,15 @@ function Planner() {
     fetchHolidays();
   }, [selectedYear, reload]);
 
+  useEffect(() => {
+  setCalendarDate(
+    dayjs()
+      .year(selectedYear)
+      .startOf("year")
+      .format("YYYY-MM-DD")
+  );
+}, [selectedYear]);
+
   const handleAdd = async () => {
     setDateError("");
     setNameError("");
