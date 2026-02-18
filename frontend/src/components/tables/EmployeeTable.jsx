@@ -59,6 +59,7 @@ const EmployeeTable = () => {
     setIsSaving(true);
     try {
       const data = await getAccounts();
+      console.log(data);
       setAccount(data);
     } catch (err) {
       console.error(err);
@@ -121,6 +122,7 @@ const EmployeeTable = () => {
       { accessorKey: "first_name", header: "First Name" },
       { accessorKey: "last_name", header: "Last Name" },
       { accessorKey: "email", header: "Email" },
+      { accessorKey: "leaves_for_current_year", header: "Current Year Leaves" },
       { accessorKey: "allocated_leaves", header: "Allocated Leaves" },
       {
         accessorKey: "status",
@@ -275,9 +277,12 @@ const EmployeeTable = () => {
         leaves={leaves}
         loading={leaveLoading}
         employee={currentEmployee}
-        onAddLeaveSuccess={() =>
-          currentEmployee && fetchLeaves(currentEmployee.id)
-        }
+        onAddLeaveSuccess={async () => {
+          if (currentEmployee) {
+            await fetchLeaves(currentEmployee.id);
+            await fetchAccounts();   // <-- ADD THIS
+          }
+        }}
       />
 
       {/* Employee onboarding popup */}

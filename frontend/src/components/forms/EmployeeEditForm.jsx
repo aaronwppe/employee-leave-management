@@ -19,6 +19,7 @@ export default function EmployeeEditForm({ onClose, row }) {
     first_name: row.first_name,
     last_name: row.last_name,
     email: row.email,
+    leaves_for_current_year: row.leaves_for_current_year,
     allocated_leaves: row.allocated_leaves,
     status: row.status,
   });
@@ -56,6 +57,16 @@ export default function EmployeeEditForm({ onClose, row }) {
       newErrors.email = "Enter valid email";
     }
 
+    if (!formData.leaves_for_current_year) {
+      newErrors.leaves_for_current_year = "Leaves for current year required";
+    } else if (
+      formData.leaves_for_current_year < 0 ||
+      formData.leaves_for_current_year > formData.allocated_leaves
+    ) {
+      newErrors.leaves_for_current_year =
+        "Leaves for current year should be greater than 0 and less than allocated leaves";
+    }
+
     if (!formData.allocated_leaves) {
       newErrors.allocated_leaves = "Allocated leaves required";
     } else if (
@@ -79,6 +90,7 @@ export default function EmployeeEditForm({ onClose, row }) {
         first_name: formData.first_name,
         last_name: formData.last_name,
         email: formData.email,
+        leaves_for_current_year:formData.leaves_for_current_year,
         allocated_leaves: formData.allocated_leaves,
         status: formData.status,
       });
@@ -166,6 +178,17 @@ export default function EmployeeEditForm({ onClose, row }) {
             onChange={handleChange}
             error={!!errors.email}
             helperText={errors.email}
+            fullWidth
+          />
+
+          <TextField
+            label="leaves_for_current_year"
+            name="leaves_for_current_year"
+            type="number"
+            value={formData.leaves_for_current_year}
+            onChange={handleChange}
+            error={!!errors.leaves_for_current_year}
+            helperText={errors.leaves_for_current_year}
             fullWidth
           />
 

@@ -36,15 +36,17 @@ export const updateAccount = async ({
   first_name,
   last_name,
   email,
+  leaves_for_current_year,
   allocated_leaves,
   status,
-  role = "EMPLOYEE",
+  role,
 }) => {
-  console.log(id, first_name, last_name, email, allocated_leaves, status, role);
+  console.log(id, first_name, last_name, email,leaves_for_current_year, allocated_leaves, status, role);
   const res = await api.put(`/account/${id}/`, {
     first_name,
     last_name,
     email,
+    leaves_for_current_year,
     allocated_leaves,
     status,
     role,

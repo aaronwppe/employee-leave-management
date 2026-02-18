@@ -50,9 +50,6 @@ class Leave(models.Model):
             raise ValidationError(
                 "You cannot delete a leave that has already started or passed."
             )
-        # restore leave balance
-        self.account.remaining_leaves += self.number_of_leaves
-        self.account.save(update_fields=["remaining_leaves"])
 
         self.is_deleted = True
         self.deleted_on = timezone.now()
@@ -116,14 +113,13 @@ class Leave(models.Model):
             start_date__lte=end_date,
             end_date__gte=start_date,
         ).exists()
-
+        
         if overlapping:
             raise ValidationError("You already have a leave applied for these dates.")
 
         # Calculate working days
         number_of_leaves = cls.calculate_working_days(start_date, end_date)
 
-        # If only holidays/weekoffs → allow but count 0
         if number_of_leaves <= 0:
             return cls.objects.create(
                 account=account,
@@ -135,10 +131,27 @@ class Leave(models.Model):
                 modified_by=created_by,
             )
 
-        # Leave balance validation
-        if account.remaining_leaves < number_of_leaves:
+        account.refresh_from_db()
+
+        current_year = timezone.now().year
+
+        # calculate leaves already taken this year
+        leaves = account.leaves.filter(
+            is_deleted=False,
+            start_date__year=current_year,
+        )
+
+        leaves_taken = sum(l.number_of_leaves for l in leaves)
+
+        remaining = account.current_year_allocated_leaves - leaves_taken
+
+        print("DEBUG → Working days:", number_of_leaves)
+        print("DEBUG → Leaves taken:", leaves_taken)
+        print("DEBUG → Remaining leaves:", remaining)
+
+        if number_of_leaves > remaining:
             raise ValidationError(
-                f"You only have {account.remaining_leaves} leave(s) remaining."
+                f"You only have {max(remaining, 0)} leave(s) remaining."
             )
 
         leave = cls.objects.create(
@@ -151,8 +164,9 @@ class Leave(models.Model):
             modified_by=created_by,
         )
 
-        account.remaining_leaves -= number_of_leaves
-        account.save(update_fields=["remaining_leaves"])
-
         return leave
+
+
+
+      
 

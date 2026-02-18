@@ -16,6 +16,7 @@ class _AccountModifierSerializer(serializers.ModelSerializer):
 
 class AccountRetrieveSerializer(serializers.ModelSerializer):
     status = serializers.BooleanField(source="is_active")
+    leaves_for_current_year = serializers.IntegerField(source="current_year_allocated_leaves")
     allocated_leaves = serializers.IntegerField(source="default_allocated_leaves")
     leaves_exhausted = serializers.SerializerMethodField()
     remaining_leaves = serializers.SerializerMethodField()
@@ -33,6 +34,7 @@ class AccountRetrieveSerializer(serializers.ModelSerializer):
             "role",
             "status",
             "allocated_leaves",
+            "leaves_for_current_year",
             "leaves_exhausted",
             "remaining_leaves",
             "leave_applications",
